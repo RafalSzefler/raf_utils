@@ -1,0 +1,16 @@
+[package]
+name = "raf_multi_valued_logic"
+version = "0.1.0"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde = { workspace = true, optional = true }
+
+[dev-dependencies]
+rstest = { workspace = true }
+
+[features]
+default = ["serde"]
+serde = ["dep:serde"]
