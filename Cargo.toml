@@ -7,6 +7,7 @@ members = [
     "projects/raf_multi_valued_logic",
     "projects/raf_structural_logging",
     "projects/raf_structural_logging_console",
+    "projects/raf_newick",
 ]
 resolver = "2"
 
@@ -24,3 +25,4 @@ termcolor = "1.4"
 chrono = "0.4"
 rand = "0.8"
 rstest = "0.21"
+smallvec = "1.13"

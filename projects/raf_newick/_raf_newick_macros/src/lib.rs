@@ -7,7 +7,10 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod array;
-mod impls;
 
-pub use array::Array;
+use proc_macro::{self, TokenStream};
+
+#[proc_macro]
+pub fn newick_graph(input: TokenStream) -> TokenStream {
+    input
+}

@@ -7,7 +7,6 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod array;
-mod impls;
-
-pub use array::Array;
+pub mod models;
+pub mod parser;
+pub mod serializer;
