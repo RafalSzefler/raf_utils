@@ -9,10 +9,10 @@
 )]
 
 #[doc(hidden)]
-extern crate _raf_newick_impl;
+extern crate raf_newick_impl;
 
 #[doc(hidden)]
-extern crate _raf_newick_macros;
+extern crate raf_newick_macros;
 
-pub use _raf_newick_impl::*;
-pub use _raf_newick_macros::*;
+pub use raf_newick_impl::*;
+pub use raf_newick_macros::*;

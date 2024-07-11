@@ -6,7 +6,7 @@ use std::{
 
 use crate::models::NewickNode;
 
-use super::{acyclic_checker, connected_checker, NewickArrow, NewickWeight};
+use super::{acyclic_checker, connected_checker, NewickArrow};
 
 use raf_array::Array;
 use smallvec::SmallVec;
@@ -14,7 +14,6 @@ use smallvec::SmallVec;
 #[derive(Debug, Eq, Clone)]
 pub struct NewickGraph {
     number_of_nodes: i32,
-    arrows: Array<NewickArrow>,
     outgoing_arrows: Array<SmallVec<[NewickArrow; 2]>>,
     node_names: HashMap<NewickNode, String>,
 }
@@ -22,7 +21,8 @@ pub struct NewickGraph {
 impl Hash for NewickGraph {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.number_of_nodes.hash(state);
-        self.arrows.hash(state);
+        self.outgoing_arrows.hash(state);
+
         let mut total = 0u64;
         for pair in &self.node_names {
             let mut hasher = raf_fnv1a_hasher::FNV1a32Hasher::new();
@@ -36,7 +36,7 @@ impl Hash for NewickGraph {
 impl PartialEq for NewickGraph {
     fn eq(&self, other: &Self) -> bool {
         self.number_of_nodes == other.number_of_nodes
-            && self.arrows == other.arrows
+            && self.outgoing_arrows == other.outgoing_arrows
             && self.node_names == other.node_names
     }
 }
@@ -140,24 +140,15 @@ impl NewickGraph {
             arrows: &[NewickArrow],
             node_names: HashMap<NewickNode, String>,
     ) -> Self {
-        let mut factory = || {
-            NewickArrow::new(
-                NewickNode::new_unchecked(-1),
-                NewickNode::new_unchecked(-1),
-                NewickWeight::new(0, 0))
-        };
-        let mut mapped_arrows = Array::new_with_fill(arrows.len(), &mut factory);
         let mut outgoing_arrows = Array::<SmallVec<[NewickArrow; 2]>>::new(arrows.len());
 
-        for (idx, arrow) in arrows.iter().enumerate() {
-            mapped_arrows.as_slice_mut()[idx] = *arrow;
+        for arrow in arrows {
             let src = arrow.source().id() as usize;
             outgoing_arrows.as_slice_mut()[src].push(*arrow);
         }
 
         Self {
             number_of_nodes: number_of_nodes,
-            arrows: mapped_arrows,
             outgoing_arrows: outgoing_arrows,
             node_names: node_names }
     }
@@ -171,7 +162,12 @@ impl NewickGraph {
     }
 
     #[inline(always)]
-    pub fn arrows(&self) -> &[NewickArrow] { self.arrows.as_slice() }
+    pub fn iter_arrows(&self) -> impl Iterator<Item = &NewickArrow> {
+        self.outgoing_arrows
+            .as_slice()
+            .iter()
+            .flat_map(|nested| nested.iter())
+    }
 
     pub fn get_outgoing_arrows(&self, node: NewickNode) -> &[NewickArrow] {
         static EMPTY: &[NewickArrow] = &[];

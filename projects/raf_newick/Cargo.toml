@@ -6,8 +6,8 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-_raf_newick_macros = { path = "_raf_newick_macros" }
-_raf_newick_impl = { path = "_raf_newick_impl" }
+raf_newick_macros = { path = "raf_newick_macros" }
+raf_newick_impl = { path = "raf_newick_impl" }
 
 [dev-dependencies]
 rstest = { workspace = true }

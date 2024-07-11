@@ -46,8 +46,7 @@ fn test_correct_graph(#[case] number_of_nodes: i32, #[case] raw_arrows: &[(i32, 
     assert_eq!(node_ids.len(), 0);
 
     let arrs: Vec<(i32, i32)> = result
-        .arrows()
-        .iter()
+        .iter_arrows()
         .map(|arr| (arr.source().id(), arr.target().id()))
         .collect();
 
