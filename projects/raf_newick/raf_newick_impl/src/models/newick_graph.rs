@@ -14,8 +14,10 @@ use smallvec::SmallVec;
 #[derive(Debug, Eq, Clone)]
 pub struct NewickGraph {
     number_of_nodes: i32,
+    incoming_arrows: Array<SmallVec<[NewickArrow; 2]>>,
     outgoing_arrows: Array<SmallVec<[NewickArrow; 2]>>,
     node_names: HashMap<NewickNode, String>,
+    root: NewickNode,
 }
 
 impl Hash for NewickGraph {
@@ -43,6 +45,7 @@ impl PartialEq for NewickGraph {
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
 pub enum NewickGraphNewError {
+    IsEmpty,
     NegativeNumberOfNodes,
     MaxNumberOfNodesExceeded,
     MultipleArrowsBetweenNodes,
@@ -56,6 +59,7 @@ impl NewickGraph {
     /// Creates and validates new [`NewickGraph`] out of raw components.
     /// 
     /// # Errors
+    /// * [`NewickGraphNewError::IsEmpty`] when `number_of_nodes == 0`
     /// * [`NewickGraphNewError::NegativeNumberOfNodes`] when `number_of_nodes < 0`
     /// * [`NewickGraphNewError::MaxNumberOfNodesExceeded`] when `number_of_nodes`
     /// is above [`NewickNode::max_id_value()`]
@@ -74,6 +78,10 @@ impl NewickGraph {
     ) -> Result<Self, NewickGraphNewError> {
         if number_of_nodes < 0 {
             return Err(NewickGraphNewError::NegativeNumberOfNodes);
+        }
+
+        if number_of_nodes == 0 {
+            return Err(NewickGraphNewError::IsEmpty);
         }
 
         if number_of_nodes > NewickNode::max_id_value() {
@@ -129,7 +137,7 @@ impl NewickGraph {
     /// 
     /// # Safety
     /// The caller has to ensure that the following invariants are satisfied:
-    /// * `number_of_nodes` is non-negative and doesn't exceed [`NewickNode::max_id_value()`]
+    /// * `number_of_nodes` is positive and doesn't exceed [`NewickNode::max_id_value()`]
     /// * arrows have to point to nodes within `0..number_of_nodes` range.
     /// * there is a single arrow between any two nodes
     /// * the graph is connected and acyclic
@@ -140,17 +148,34 @@ impl NewickGraph {
             arrows: &[NewickArrow],
             node_names: HashMap<NewickNode, String>,
     ) -> Self {
-        let mut outgoing_arrows = Array::<SmallVec<[NewickArrow; 2]>>::new(arrows.len());
+        let nodes_count = number_of_nodes as usize;
+        let mut incoming_arrows = Array::<SmallVec<[NewickArrow; 2]>>::new(nodes_count);
+        let mut outgoing_arrows = Array::<SmallVec<[NewickArrow; 2]>>::new(nodes_count);
 
         for arrow in arrows {
             let src = arrow.source().id() as usize;
             outgoing_arrows.as_slice_mut()[src].push(*arrow);
+
+            let trg = arrow.target().id() as usize;
+            incoming_arrows.as_slice_mut()[trg].push(*arrow);
+        }
+
+        let mut root = None;
+        for (idx, arrows) in incoming_arrows.as_slice().iter().enumerate() {
+            if arrows.len() == 0 {
+                let node = NewickNode::new_unchecked(idx as i32);
+                root = Some(node);
+                break;
+            }
         }
 
         Self {
             number_of_nodes: number_of_nodes,
+            incoming_arrows: incoming_arrows,
             outgoing_arrows: outgoing_arrows,
-            node_names: node_names }
+            node_names: node_names,
+            root: root.unwrap(),
+        }
     }
 
     #[inline(always)]
@@ -169,14 +194,24 @@ impl NewickGraph {
             .flat_map(|nested| nested.iter())
     }
 
+    pub fn get_incoming_arrows(&self, node: NewickNode) -> &[NewickArrow] {
+        let idx = node.id();
+        if idx < 0 || idx >= self.number_of_nodes {
+            return EMPTY;
+        }
+        &self.incoming_arrows.as_slice()[idx as usize]
+    }
+
     pub fn get_outgoing_arrows(&self, node: NewickNode) -> &[NewickArrow] {
-        static EMPTY: &[NewickArrow] = &[];
         let idx = node.id();
         if idx < 0 || idx >= self.number_of_nodes {
             return EMPTY;
         }
         &self.outgoing_arrows.as_slice()[idx as usize]
     }
+
+    #[inline(always)]
+    pub fn root_node(&self) -> NewickNode { self.root }
 
     #[inline(always)]
     pub fn get_node_name(&self, node: NewickNode) -> Option<&String> {
@@ -207,3 +242,5 @@ fn get_neigh<'a>(map: &'a mut HashMap<NewickNode, HashSet<NewickNode>>, node: &'
         },
     }
 }
+
+static EMPTY: &[NewickArrow] = &[];

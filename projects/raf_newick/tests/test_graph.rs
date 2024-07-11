@@ -10,8 +10,8 @@ use rstest::rstest;
 
 fn arr(src: i32, trg: i32) -> NewickArrow {
     NewickArrow::new(
-        unsafe { NewickNode::new_unchecked(src) },
-        unsafe { NewickNode::new_unchecked(trg) },
+        NewickNode::new(src).unwrap(),
+        NewickNode::new(trg).unwrap(),
         NewickWeight::new(0, 0))
 }
 
@@ -27,7 +27,6 @@ fn graph(number_of_nodes: i32, raw_arrows: &[(i32, i32)])
 }
 
 #[rstest]
-#[case(0, &[])]
 #[case(1, &[])]
 #[case(2, &[(0, 1)])]
 #[case(3, &[(0, 1), (0, 2)])]
@@ -51,6 +50,23 @@ fn test_correct_graph(#[case] number_of_nodes: i32, #[case] raw_arrows: &[(i32, 
         .collect();
 
     assert_eq!(arrs, raw_arrows);
+    assert_eq!(result.root_node().id(), 0);
+}
+
+#[rstest]
+#[case(1, &[], 0)]
+#[case(2, &[(0, 1)], 0)]
+#[case(3, &[(1, 0), (1, 2)], 1)]
+#[case(3, &[(0, 1), (1, 2)], 0)]
+#[case(4, &[(3, 1), (3, 2), (3, 0)], 3)]
+fn test_roots(
+        #[case] number_of_nodes: i32,
+        #[case] raw_arrows: &[(i32, i32)],
+        #[case] root: i32)
+{
+    let result = graph(number_of_nodes, raw_arrows).unwrap();
+    assert_eq!(result.number_of_nodes(), number_of_nodes);
+    assert_eq!(result.root_node().id(), root);
 }
 
 #[rstest]
@@ -88,11 +104,20 @@ fn test_multiple_arrows_graph(#[case] number_of_nodes: i32, #[case] raw_arrows: 
 }
 
 #[rstest]
-#[case(0, &[(0, 1)])]
 #[case(1, &[(0, 1)])]
 #[case(2, &[(0, 1), (15, 1)])]
 fn test_arrows_out_of_range_graph(#[case] number_of_nodes: i32, #[case] raw_arrows: &[(i32, i32)]) {
     let result = graph(number_of_nodes, raw_arrows);
     let err = result.err().unwrap();
     assert_eq!(err, NewickGraphNewError::ArrowPointsToNodeOutsideOfRange);
+}
+
+#[rstest]
+#[case(0, &[])]
+#[case(0, &[(0, 0)])]
+#[case(0, &[(0, 1)])]
+fn test_empty_graph(#[case] number_of_nodes: i32, #[case] raw_arrows: &[(i32, i32)]) {
+    let result = graph(number_of_nodes, raw_arrows);
+    let err = result.err().unwrap();
+    assert_eq!(err, NewickGraphNewError::IsEmpty);
 }
