@@ -6,6 +6,7 @@ use raf_newick::models::{
     NewickGraphNewError,
     NewickNode,
     NewickWeight};
+
 use rstest::rstest;
 
 fn arr(src: i32, trg: i32) -> NewickArrow {
@@ -23,7 +24,11 @@ fn graph(number_of_nodes: i32, raw_arrows: &[(i32, i32)])
         .map(|p| arr(p.0, p.1))
         .collect();
 
-    NewickGraph::new(number_of_nodes, &arrows, HashMap::new())
+    NewickGraph::new(
+        number_of_nodes,
+        &arrows,
+        HashMap::new(),
+        HashMap::new())
 }
 
 #[rstest]

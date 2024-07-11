@@ -1,4 +1,7 @@
-#![allow(clippy::cast_sign_loss)]
+#![allow(
+    clippy::cast_sign_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_possible_wrap)]
 
 use std::{
     collections::{hash_map::Entry, HashMap, HashSet},
@@ -14,32 +17,27 @@ use smallvec::SmallVec;
 #[derive(Debug, Eq, Clone)]
 pub struct NewickGraph {
     number_of_nodes: i32,
+    hash: u64,
     incoming_arrows: Array<SmallVec<[NewickArrow; 2]>>,
     outgoing_arrows: Array<SmallVec<[NewickArrow; 2]>>,
     node_names: HashMap<NewickNode, String>,
+    reticulation_types: HashMap<NewickNode, String>,
     root: NewickNode,
 }
 
 impl Hash for NewickGraph {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.number_of_nodes.hash(state);
-        self.outgoing_arrows.hash(state);
-
-        let mut total = 0u64;
-        for pair in &self.node_names {
-            let mut hasher = raf_fnv1a_hasher::FNV1a32Hasher::new();
-            pair.hash(&mut hasher);
-            total ^= hasher.finish();
-        }
-        state.write_u64(total);
+        self.hash.hash(state);
     }
 }
 
 impl PartialEq for NewickGraph {
     fn eq(&self, other: &Self) -> bool {
-        self.number_of_nodes == other.number_of_nodes
+        self.hash == other.hash
+            && self.number_of_nodes == other.number_of_nodes
             && self.outgoing_arrows == other.outgoing_arrows
             && self.node_names == other.node_names
+            && self.reticulation_types == other.reticulation_types
     }
 }
 
@@ -53,6 +51,7 @@ pub enum NewickGraphNewError {
     GraphIsNotConnected,
     GraphIsNotAcyclic,
     NodeNamesContainNodesOutOfRange,
+    ReticulationMapContainsNonReticulations,
 }
 
 impl NewickGraph {
@@ -71,10 +70,13 @@ impl NewickGraph {
     /// * [`NewickGraphNewError::GraphIsNotAcyclic`] if graph contains oriented cycles
     /// * [`NewickGraphNewError::NodeNamesContainNodesOutOfRange`] if `node_names` contains
     /// nodes outside of `0..number_of_nodes` range
+    /// * [`NewickGraphNewError::ReticulationMapContainsNonReticulations`] if `reticulation_types`
+    /// contains nodes which are not reticulations (i.e. of in-degree at least 2).
     pub fn new(
         number_of_nodes: i32,
         arrows: &[NewickArrow],
         node_names: HashMap<NewickNode, String>,
+        reticulation_types: HashMap<NewickNode, String>,
     ) -> Result<Self, NewickGraphNewError> {
         if number_of_nodes < 0 {
             return Err(NewickGraphNewError::NegativeNumberOfNodes);
@@ -127,27 +129,6 @@ impl NewickGraph {
             }
         }
 
-        let graph = unsafe {
-            Self::new_unchecked(number_of_nodes, arrows, node_names)
-        };
-        Ok(graph)
-    }
-
-    /// Creates new [`NewickGraph`] out of raw components.
-    /// 
-    /// # Safety
-    /// The caller has to ensure that the following invariants are satisfied:
-    /// * `number_of_nodes` is positive and doesn't exceed [`NewickNode::max_id_value()`]
-    /// * arrows have to point to nodes within `0..number_of_nodes` range.
-    /// * there is a single arrow between any two nodes
-    /// * the graph is connected and acyclic
-    /// * `node_names` has to contain nodes present in graph
-    #[inline(always)]
-    pub unsafe fn new_unchecked(
-            number_of_nodes: i32,
-            arrows: &[NewickArrow],
-            node_names: HashMap<NewickNode, String>,
-    ) -> Self {
         let nodes_count = number_of_nodes as usize;
         let mut incoming_arrows = Array::<SmallVec<[NewickArrow; 2]>>::new(nodes_count);
         let mut outgoing_arrows = Array::<SmallVec<[NewickArrow; 2]>>::new(nodes_count);
@@ -160,21 +141,70 @@ impl NewickGraph {
             incoming_arrows.as_slice_mut()[trg].push(*arrow);
         }
 
-        let mut root = None;
+        for key in reticulation_types.keys() {
+            let id = key.id();
+            if id < 0 || id >= number_of_nodes {
+                return Err(NewickGraphNewError::ReticulationMapContainsNonReticulations);
+            }
+
+            if incoming_arrows.as_slice()[id as usize].len() < 2 {
+                return Err(NewickGraphNewError::ReticulationMapContainsNonReticulations);
+            }
+        }
+
+        let graph = unsafe {
+            Self::new_unchecked(
+                number_of_nodes,
+                incoming_arrows,
+                outgoing_arrows,
+                node_names,
+                reticulation_types)
+        };
+        Ok(graph)
+    }
+
+    /// Creates new [`NewickGraph`] out of raw components.
+    /// 
+    /// # Safety
+    /// The caller has to ensure that the following invariants are satisfied:
+    /// * `number_of_nodes` is positive and doesn't exceed [`NewickNode::max_id_value()`]
+    /// * `incoming_arrows` and `outgoing_arrows` have to be within `0..number_of_nodes` range
+    /// * the graph is connected and acyclic
+    /// * `node_names` has to contain nodes present in graph
+    /// * `reticulation_types` has reticulation nodes as keys
+    #[inline(always)]
+    pub unsafe fn new_unchecked(
+            number_of_nodes: i32,
+            incoming_arrows: Array<SmallVec<[NewickArrow; 2]>>,
+            outgoing_arrows: Array<SmallVec<[NewickArrow; 2]>>,
+            node_names: HashMap<NewickNode, String>,
+            reticulation_types: HashMap<NewickNode, String>,
+    ) -> Self {
+
+        // Root has to exist in an acyclic graph, and has to be unique if
+        // additionally connected.
+        let mut root = NewickNode::new_unchecked(-1);
         for (idx, arrows) in incoming_arrows.as_slice().iter().enumerate() {
-            if arrows.len() == 0 {
-                let node = NewickNode::new_unchecked(idx as i32);
-                root = Some(node);
+            if arrows.is_empty() {
+                root = NewickNode::new_unchecked(idx as i32);
                 break;
             }
         }
 
+        let mut state = raf_fnv1a_hasher::FNV1a32Hasher::new();
+        number_of_nodes.hash(&mut state);
+        outgoing_arrows.hash(&mut state);
+        calc_map_hash(&node_names).hash(&mut state);
+        calc_map_hash(&reticulation_types).hash(&mut state);
+
         Self {
             number_of_nodes: number_of_nodes,
+            hash: state.finish(),
             incoming_arrows: incoming_arrows,
             outgoing_arrows: outgoing_arrows,
             node_names: node_names,
-            root: root.unwrap(),
+            reticulation_types: reticulation_types,
+            root: root,
         }
     }
 
@@ -217,6 +247,11 @@ impl NewickGraph {
     pub fn get_node_name(&self, node: NewickNode) -> Option<&String> {
         self.node_names.get(&node)
     }
+
+    #[inline(always)]
+    pub fn get_reticulation_type(&self, node: NewickNode) -> Option<&String> {
+        self.reticulation_types.get(&node)
+    }
 }
 
 fn get_succ<'a>(map: &'a mut HashMap<NewickNode, Vec<NewickNode>>, node: &'a NewickNode)
@@ -244,3 +279,16 @@ fn get_neigh<'a>(map: &'a mut HashMap<NewickNode, HashSet<NewickNode>>, node: &'
 }
 
 static EMPTY: &[NewickArrow] = &[];
+
+fn calc_map_hash<T, K>(map: &HashMap<T, K>) -> u64
+    where T: Hash,
+          K: Hash
+{
+    let mut total = 0u64;
+    for pair in map {
+        let mut hasher = raf_fnv1a_hasher::FNV1a32Hasher::new();
+        pair.hash(&mut hasher);
+        total ^= hasher.finish();
+    }
+    total
+}
