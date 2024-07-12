@@ -2,15 +2,17 @@ use std::io::Read;
 
 use crate::models::NewickGraph;
 
-use super::{ParseError, ParseOk};
+use super::{internal::InternalDeserializer, ParseError, ParseOk};
 
 /// # Errors
 /// * [`ParseError::InvalidContent`] if input does not contain valid Newick graph
 /// * [`ParseError::GraphError`] if input is a graph, but doesn't satisfy Newick
 /// invariants (see [`NewickGraphNewError`] for details)
 /// * [`ParseError::IO`] are errors forwarded from passed [`Read`] instance.
+/// * [`ParseError::UTF8`] read bytes do not form a valid utf-8 string.
 pub fn parse<TRead: Read>(input: &mut TRead) -> Result<ParseOk, ParseError> {
-    todo!()
+    let internal_deserializer = InternalDeserializer::new(input);
+    internal_deserializer.parse()
 }
 
 /// # Errors

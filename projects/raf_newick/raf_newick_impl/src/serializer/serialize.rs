@@ -15,8 +15,8 @@ pub fn serialize<TWrite: Write>(
         output: &mut TWrite)
     -> Result<SerializerOk, SerializeError>
 {
-    let serializer = InternalSerializer::new(graph, output);
-    serializer.serialize()
+    let internal_serializer = InternalSerializer::new(graph, output);
+    internal_serializer.serialize()
 }
 
 /// Serializes [`NewickGraph`] into [`String`] instance.

@@ -79,9 +79,11 @@ impl<'a, TWrite: Write> InternalSerializer<'a, TWrite> {
                 _ser!(iter.next().unwrap());
                 for arr in iter {
                     self.output.write_all(b",")?;
+                    self.written_bytes += 1;
                     _ser!(arr);
                 }
                 self.output.write_all(b")")?;
+                self.written_bytes += 2;
             }
         }
 
@@ -89,6 +91,7 @@ impl<'a, TWrite: Write> InternalSerializer<'a, TWrite> {
 
         if is_reticulation {
             self.output.write_all(b"#")?;
+            self.written_bytes += 1;
             if let Some(reticulation_type) = self.graph.get_reticulation_type(node) {
                 self.serialize_str(reticulation_type.as_str())?;
             }
@@ -115,6 +118,7 @@ impl<'a, TWrite: Write> InternalSerializer<'a, TWrite> {
         self.serialize_u32(weight.integer_part())?;
         self.output.write_all(b".")?;
         self.serialize_u32(weight.fractional_part())?;
+        self.written_bytes += 2;
         Ok(())
     }
 
@@ -136,6 +140,7 @@ impl<'a, TWrite: Write> InternalSerializer<'a, TWrite> {
         }
 
         self.output.write_all(&buffer[0..value_length])?;
+        self.written_bytes += value_length;
         Ok(())
     }
 
@@ -159,7 +164,9 @@ impl<'a, TWrite: Write> InternalSerializer<'a, TWrite> {
             }
         }
 
-        self.output.write_all(value.as_bytes())?;
+        let bytes = value.as_bytes();
+        self.output.write_all(bytes)?;
+        self.written_bytes += bytes.len();
         Ok(())
     }
     
@@ -171,15 +178,18 @@ impl<'a, TWrite: Write> InternalSerializer<'a, TWrite> {
         for chr in value.chars() {
             if chr == '"' {
                 self.output.write_all(b"\"\"")?;
+                self.written_bytes += 1;
                 continue;
             }
 
             let len = chr.len_utf8();
             chr.encode_utf8(&mut chr_buffer);
             self.output.write_all(&chr_buffer[0..len])?;
+            self.written_bytes += len;
             continue;
         }
         self.output.write_all(b"\"")?;
+        self.written_bytes += 2;
         Ok(())
     }
 }
