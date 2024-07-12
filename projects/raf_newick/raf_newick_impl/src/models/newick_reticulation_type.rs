@@ -6,15 +6,24 @@ pub struct NewickReticulationType {
 }
 
 impl NewickReticulationType {
+    const fn max_len() -> usize { 100 }
+
     /// Creates new instance of [`NewickReticulationType`]. Copies passed `text` to
     /// internal structures.
     /// 
     /// # Panics
-    /// When can't allocate data internally for the copy.
+    /// * when text is empty
+    /// * when text length exceeds [`NewickReticulationType::max_len()`]
+    /// * when text not `char::is_ascii_alphabetic`
+    /// * when can't allocate data internally for the copy.
     #[inline]
     pub fn new(text: &str) -> Self {
+        const MAX: usize = NewickReticulationType::max_len();
+        assert!(!text.is_empty(), "Text empty");
+        assert!(text.len() <= MAX, "Text length exceeds maximum of {MAX}");
+        assert!(text.chars().all(|x| char::is_ascii_alphabetic(&x)), "Text not is_ascii_alphabetic.");
         let imm = ImmutableString::new(text)
-            .expect("Couldn't create ImmutableString.");
+            .expect("Couldn't create internal buffer.");
         Self { imm }
     }
 

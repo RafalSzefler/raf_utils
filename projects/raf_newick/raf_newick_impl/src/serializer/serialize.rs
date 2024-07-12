@@ -2,19 +2,21 @@ use std::io::Write;
 
 use crate::models::NewickGraph;
 
-use super::{SerializeError, SerializerOk};
+use super::{internal::InternalSerializer, SerializeError, SerializerOk};
 
 /// Serializes [`NewickGraph`] into passed [`Write`] instance.
 /// 
 /// # Errors
 /// * [`SerializeError::IO`] are errors forwarded from passed
 /// [`Write`] instance.
+#[inline(always)]
 pub fn serialize<TWrite: Write>(
         graph: &NewickGraph,
         output: &mut TWrite)
     -> Result<SerializerOk, SerializeError>
 {
-    todo!()
+    let serializer = InternalSerializer::new(graph, output);
+    serializer.serialize()
 }
 
 /// Serializes [`NewickGraph`] into [`String`] instance.

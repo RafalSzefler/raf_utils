@@ -10,9 +10,11 @@ impl NewickName {
     /// internal structures.
     /// 
     /// # Panics
-    /// When can't allocate data internally for the copy.
+    /// * when text is empty
+    /// * when can't allocate data internally for the copy.
     #[inline]
     pub fn new(text: &str) -> Self {
+        assert!(!text.is_empty(), "Text is empty");
         let imm = ImmutableString::new(text)
             .expect("Couldn't create internal buffer.");
         Self { imm }

@@ -33,7 +33,6 @@ pub(crate) fn is_acyclic(
             None => return true,
         };
 
-        seen.clear();
         if has_cycle(next_node, successors, &mut nodes, &mut seen) {
             return false;
         }
@@ -50,17 +49,16 @@ fn has_cycle(
         return true;
     }
 
-    if !nodes.remove(&node) {
-        return false;
-    }
-
-    let Some(succs) = successors.get(&node) else { return false; };
-
-    for succ in succs {
-        if has_cycle(*succ, successors, nodes, seen) {
-            return true;
+    if let Some(succs) = successors.get(&node) {
+        for succ in succs {
+            if has_cycle(*succ, successors, nodes, seen) {
+                return true;
+            }
         }
     }
+
+    seen.remove(&node);
+    nodes.remove(&node);
 
     return false;
 }

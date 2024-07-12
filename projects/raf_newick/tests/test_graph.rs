@@ -5,7 +5,7 @@ use raf_newick::models::{
     NewickGraph,
     NewickGraphNewError,
     NewickNode,
-    NewickWeight};
+    OptionalNewickWeight};
 
 use rstest::rstest;
 
@@ -13,7 +13,7 @@ fn arr(src: i32, trg: i32) -> NewickArrow {
     NewickArrow::new(
         NewickNode::new(src).unwrap(),
         NewickNode::new(trg).unwrap(),
-        NewickWeight::new(0, 0))
+        OptionalNewickWeight::none())
 }
 
 fn graph(number_of_nodes: i32, raw_arrows: &[(i32, i32)])
