@@ -9,7 +9,12 @@ use std::{
 
 use crate::models::NewickNode;
 
-use super::{acyclic_checker, connected_checker, NewickArrow};
+use super::{
+    acyclic_checker,
+    connected_checker,
+    NewickArrow,
+    NewickName,
+    NewickReticulationType};
 
 use raf_array::Array;
 use smallvec::SmallVec;
@@ -20,8 +25,8 @@ pub struct NewickGraph {
     hash: u64,
     incoming_arrows: Array<SmallVec<[NewickArrow; 2]>>,
     outgoing_arrows: Array<SmallVec<[NewickArrow; 2]>>,
-    node_names: HashMap<NewickNode, String>,
-    reticulation_types: HashMap<NewickNode, String>,
+    node_names: HashMap<NewickNode, NewickName>,
+    reticulation_types: HashMap<NewickNode, NewickReticulationType>,
     root: NewickNode,
 }
 
@@ -75,8 +80,8 @@ impl NewickGraph {
     pub fn new(
         number_of_nodes: i32,
         arrows: &[NewickArrow],
-        node_names: HashMap<NewickNode, String>,
-        reticulation_types: HashMap<NewickNode, String>,
+        node_names: HashMap<NewickNode, NewickName>,
+        reticulation_types: HashMap<NewickNode, NewickReticulationType>,
     ) -> Result<Self, NewickGraphNewError> {
         if number_of_nodes < 0 {
             return Err(NewickGraphNewError::NegativeNumberOfNodes);
@@ -177,8 +182,8 @@ impl NewickGraph {
             number_of_nodes: i32,
             incoming_arrows: Array<SmallVec<[NewickArrow; 2]>>,
             outgoing_arrows: Array<SmallVec<[NewickArrow; 2]>>,
-            node_names: HashMap<NewickNode, String>,
-            reticulation_types: HashMap<NewickNode, String>,
+            node_names: HashMap<NewickNode, NewickName>,
+            reticulation_types: HashMap<NewickNode, NewickReticulationType>,
     ) -> Self {
 
         // Root has to exist in an acyclic graph, and has to be unique if
@@ -244,12 +249,16 @@ impl NewickGraph {
     pub fn root_node(&self) -> NewickNode { self.root }
 
     #[inline(always)]
-    pub fn get_node_name(&self, node: NewickNode) -> Option<&String> {
+    pub fn get_node_name(&self, node: NewickNode)
+        -> Option<&NewickName>
+    {
         self.node_names.get(&node)
     }
 
     #[inline(always)]
-    pub fn get_reticulation_type(&self, node: NewickNode) -> Option<&String> {
+    pub fn get_reticulation_type(&self, node: NewickNode)
+        -> Option<&NewickReticulationType>
+    {
         self.reticulation_types.get(&node)
     }
 }
