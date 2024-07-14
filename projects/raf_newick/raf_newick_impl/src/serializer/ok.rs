@@ -1,3 +1,3 @@
-pub struct SerializerOk {
+pub struct SerializeOk {
     pub written_bytes: usize,
 }

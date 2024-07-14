@@ -12,5 +12,6 @@ use proc_macro::{self, TokenStream};
 
 #[proc_macro]
 pub fn newick_graph(input: TokenStream) -> TokenStream {
-    input
+    let _ = input;
+    todo!()
 }

@@ -1,46 +1,61 @@
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub struct NewickNode {
-    id: i32,
+use super::{NewickName, NewickReticulation, NewickWeight, OptionalNewickReticulation, OptionalNewickWeight};
+
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+pub struct NewickNodeId {
+    value: i32
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
-pub enum NewickNodeNewError {
-    NegativeId,
-    MaxIdValueExceeded,
+impl NewickNodeId {
+    /// Builds new instance of [`NewickNodeId`].
+    /// 
+    /// # Safety
+    /// Doesn't verify `value`. This `value` has additional semantics,
+    /// that points to concrete element in node arrays. Use with caution.
+    #[inline(always)]
+    pub unsafe fn new_unchecked(value: i32) -> Self {
+        Self { value }
+    }
+
+    #[inline(always)]
+    pub fn value(&self) -> i32 { self.value }
+}
+
+#[derive(PartialEq, Eq, Hash, Clone, Debug)]
+pub struct NewickNode {
+    id: NewickNodeId,
+    name: NewickName,
+    weight: OptionalNewickWeight,
+    reticulation: OptionalNewickReticulation,
 }
 
 impl NewickNode {
-    /// Returns max numerical id value for a [`NewickNode`].
-    #[inline(always)]
-    pub const fn max_id_value() -> i32 { 1 << 30 }
-
-    /// Creates new [`NewickNode`] out of `id: i32`.
-    /// 
-    /// # Errors
-    /// * [`NewickNodeNewError::NegativeId`] when passed `id` is negative
-    /// * [`NewickNodeNewError::MaxIdValueExceeded`] when passed `id` exceeds
-    /// [`NewickNode::max_id_value()`].
-    #[inline]
-    pub fn new(id: i32) -> Result<Self, NewickNodeNewError> {
-        if id < 0 {
-            return Err(NewickNodeNewError::NegativeId);
-        }
-        if id > Self::max_id_value() {
-            return Err(NewickNodeNewError::MaxIdValueExceeded);
-        }
-        Ok( Self { id } )
-    }
-
-    /// Creates new [`NewickNode`] out of `id: i32`.
+    /// Builds new instance of [`NewickNode`].
     /// 
     /// # Safety
-    /// It is up to caller to ensure that `id` is non-negative and doesn't
-    /// exceed [`NewickNode::max_id_value()`].
+    /// Doesn't verify validity of any of parameters.
     #[inline(always)]
-    pub unsafe fn new_unchecked(id: i32) -> Self {
-        Self { id }
+    pub unsafe fn new_unchecked(
+            id: NewickNodeId,
+            name: NewickName,
+            weight: OptionalNewickWeight,
+            reticulation: OptionalNewickReticulation) -> Self
+    {
+        Self { id, name, weight, reticulation }
     }
 
     #[inline(always)]
-    pub fn id(&self) -> i32 { self.id }
+    pub fn id(&self) -> NewickNodeId { self.id }
+
+    #[inline(always)]
+    pub fn name(&self) -> &NewickName { &self.name }
+
+    #[inline(always)]
+    pub fn weight(&self) -> Option<NewickWeight> {
+        self.weight.as_option()
+    }
+
+    #[inline(always)]
+    pub fn reticulation(&self) -> Option<&NewickReticulation> {
+        self.reticulation.as_option()
+    }
 }

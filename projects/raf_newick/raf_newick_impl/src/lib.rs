@@ -7,6 +7,11 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
+mod common;
+mod validation;
 pub mod models;
-pub mod parser;
 pub mod serializer;
+pub mod deserializer;
+
+mod newick_graph_builder;
+pub use newick_graph_builder::*;

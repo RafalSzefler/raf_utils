@@ -1,74 +1,100 @@
 #![allow(
+    clippy::cast_possible_truncation,
     clippy::cast_sign_loss,
     clippy::cast_possible_wrap)]
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
 pub struct NewickWeight {
-    integer_part: i32,
+    integral_part: i32,
     fractional_part: i32,
 }
 
+#[derive(Debug)]
+pub enum NewWeightError {
+    IntegralPartOutOfRange,
+    FractionalPartOutOfRange,
+}
+
 impl NewickWeight {
-    /// Contains max value for both integer and fractional part of weight.
-    #[inline(always)]
-    const fn max_value() -> u32 { (i32::MAX - 8) as u32 }
+    pub const fn max_value() -> u32 { (i32::MAX - 1) as u32 }
 
-    /// Creates new [`NewickWeight`] instance.
+    /// Builds new instance of [`NewickWeight`].
     /// 
-    /// # Panics
-    /// If either `integer_part` or `fractional_part` exceeds
-    /// [`NewickWeight::max_value()`].
-    #[inline(always)]
-    pub fn new(integer_part: u32, fractional_part: u32) -> Self {
-        const MAX: u32 = NewickWeight::max_value();
-        assert!(integer_part <= MAX,  "Max value for integer part is {MAX}.");
-        assert!(fractional_part <= MAX, "Max value for fractional part is {MAX}.");
-
-        unsafe {
-            Self::new_unchecked(
-                integer_part as i32,
-                fractional_part as i32)
+    /// # Errors
+    /// * [`NewWeightError::IntegralPartOutOfRange`] if `integral_part` exceeds [`NewickWeight::max_value()`]
+    /// * [`NewWeightError::FractionalPartOutOfRange`] if `fractional_part` exceeds [`NewickWeight::max_value()`]
+    pub fn new(integral_part: u32, fractional_part: u32)
+        -> Result<Self, NewWeightError>
+    {
+        if integral_part > NewickWeight::max_value() {
+            return Err(NewWeightError::IntegralPartOutOfRange);
         }
+
+        if fractional_part > NewickWeight::max_value() {
+            return Err(NewWeightError::FractionalPartOutOfRange);
+        }
+
+        let result = unsafe {
+            Self::new_unchecked(integral_part, fractional_part)
+        };
+
+        Ok(result)
+    }
+
+    /// Builds new instance of [`NewickWeight`].
+    /// 
+    /// # Safety
+    /// Both `integral_part` and `fractional_part` cannot exceed [`NewickWeight::max_value()`]
+    #[inline(always)]
+    pub unsafe fn new_unchecked(integral_part: u32, fractional_part: u32)
+        -> Self
+    {
+        Self {
+            integral_part: integral_part as i32,
+            fractional_part: fractional_part as i32 }
+    }
+
+    fn empty() -> Self {
+        Self { integral_part: -1, fractional_part: -1 }
     }
 
     #[inline(always)]
-    pub fn integer_part(&self) -> u32 { self.integer_part as u32 }
+    pub fn integral_part(&self) -> u32 { self.integral_part as u32 }
 
     #[inline(always)]
     pub fn fractional_part(&self) -> u32 { self.fractional_part as u32 }
-
-    #[inline(always)]
-    unsafe fn new_unchecked(integer_part: i32, fractional_part: i32) -> Self {
-        Self { integer_part, fractional_part }
-    }
 }
 
-#[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct OptionalNewickWeight {
-    weight: NewickWeight,
+    value: NewickWeight,
 }
 
 impl OptionalNewickWeight {
     #[inline(always)]
-    pub fn some(weight: NewickWeight) -> Self {
-        Self { weight }
+    pub fn some(value: NewickWeight) -> Self {
+        Self { value: value }
     }
 
     #[inline(always)]
     pub fn none() -> Self {
-        let weight = unsafe {
-            NewickWeight::new_unchecked(-1, -1)
-        };
-
-        Self { weight }
+        Self { value: NewickWeight::empty() }
     }
 
     #[inline(always)]
-    pub fn weight(&self) -> Option<NewickWeight> {
-        if self.weight.integer_part < 0 {
+    pub fn as_option(&self) -> Option<NewickWeight> {
+        if self.value.integral_part == -1 {
             None
         } else {
-            Some(self.weight)
+            Some(self.value)
         }
+    }
+}
+
+impl core::fmt::Debug for OptionalNewickWeight {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("OptionalNewickWeight")
+            .field("option", &self.as_option())
+            .finish()
     }
 }
