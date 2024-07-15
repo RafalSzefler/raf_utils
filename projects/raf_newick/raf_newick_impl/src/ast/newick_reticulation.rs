@@ -5,6 +5,7 @@ pub struct NewickReticulationKind {
     value: ImmutableString,
 }
 
+#[derive(Debug)]
 pub enum NewReticulationKindError {
     TooLong,
     InternalAllocationError,
@@ -43,13 +44,8 @@ impl NewickReticulationKind {
     /// The following have to be satisfied:
     /// * `text.len()` cannot exceed [`NewickReticulationKind::max_len()`]
     /// * `text` has to be ascii-alphabetic string
-    ///
-    /// # Panics
-    /// Only when can't allocate internal buffer.
-    pub unsafe fn new_unchecked(text: &str) -> Self {
-        let imm = ImmutableString::new(text)
-            .expect("InternalAllocationError");
-        Self { value: imm }
+    pub unsafe fn new_unchecked(text: ImmutableString) -> Self {
+        Self { value: text }
     }
 
     #[inline(always)]
@@ -149,7 +145,7 @@ impl OptionalNewickReticulation {
 
     pub fn none() -> Self { 
         unsafe {
-            let empty_kind = NewickReticulationKind::new_unchecked("");
+            let empty_kind = NewickReticulationKind::new_unchecked(ImmutableString::empty().clone());
             let empty = NewickReticulation::new_unchecked(0, empty_kind);
             Self { value: empty }
         }
