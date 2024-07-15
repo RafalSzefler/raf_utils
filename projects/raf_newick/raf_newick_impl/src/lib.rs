@@ -11,3 +11,6 @@ mod common;
 pub mod ast;
 pub mod serializer;
 pub mod deserializer;
+
+#[doc(hidden)]
+pub mod macro_helpers;

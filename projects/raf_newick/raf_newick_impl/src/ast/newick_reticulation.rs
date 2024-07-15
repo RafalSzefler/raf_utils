@@ -1,5 +1,6 @@
 use raf_immutable_string::ImmutableString;
 
+
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub struct NewickReticulationKind {
     value: ImmutableString,
@@ -44,8 +45,13 @@ impl NewickReticulationKind {
     /// The following have to be satisfied:
     /// * `text.len()` cannot exceed [`NewickReticulationKind::max_len()`]
     /// * `text` has to be ascii-alphabetic string
-    pub unsafe fn new_unchecked(text: ImmutableString) -> Self {
-        Self { value: text }
+    /// 
+    /// # Panics
+    /// Only when can't allocate internal buffer.
+    pub unsafe fn new_unchecked(text: &str) -> Self {
+        let imm = ImmutableString::new(text)
+            .expect("InternalAllocationError");
+        Self { value: imm }
     }
 
     #[inline(always)]
@@ -145,7 +151,7 @@ impl OptionalNewickReticulation {
 
     pub fn none() -> Self { 
         unsafe {
-            let empty_kind = NewickReticulationKind::new_unchecked(ImmutableString::empty().clone());
+            let empty_kind = NewickReticulationKind::new_unchecked("");
             let empty = NewickReticulation::new_unchecked(0, empty_kind);
             Self { value: empty }
         }

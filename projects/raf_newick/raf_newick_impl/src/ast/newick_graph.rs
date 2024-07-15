@@ -15,6 +15,7 @@ pub struct NewickGraph {
     root: NewickNodeId,
 }
 
+
 impl NewickGraph {
     /// Builds new instance of [`NewickGraph`].
     /// 
@@ -65,4 +66,14 @@ impl NewickGraph {
 
     #[inline(always)]
     pub fn root(&self) -> NewickNodeId { self.root }
+}
+
+
+impl core::fmt::Debug for NewickGraph {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NewickGraph")
+            .field("nodes_len", &self.nodes.len())
+            .field("root", &self.root)
+            .finish()
+    }
 }

@@ -1,6 +1,5 @@
 use std::{fmt::Write, io::Read, mem::MaybeUninit};
 
-use raf_immutable_string::ImmutableString;
 
 use crate::{
     ast::{
@@ -98,7 +97,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         self.forward_whitespace()?;
         if self.current == QUOTE {
             let text = self.read_str(MAX_LEN)?;
-            let name = unsafe { NewickName::new_unchecked(text) };
+            let name = unsafe { NewickName::new_unchecked(text.as_str()) };
             return Ok(name);
         }
 
@@ -108,7 +107,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         }
 
         let text = self.read_str(MAX_LEN)?;
-        let name = unsafe { NewickName::new_unchecked(text) };
+        let name = unsafe { NewickName::new_unchecked(text.as_str()) };
         return Ok(name);
     }
 
@@ -209,7 +208,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         Ok(result)
     }
 
-    fn read_str(&mut self, max_len: usize) -> Result<ImmutableString, DeserializeError> {
+    fn read_str(&mut self, max_len: usize) -> Result<String, DeserializeError> {
         if self.current == QUOTE {
             self.read_char()?;
             return self.read_quoted_str(max_len);
@@ -218,7 +217,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         return self.read_unquoted_str(max_len);
     }
 
-    fn read_quoted_str(&mut self, max_len: usize) -> Result<ImmutableString, DeserializeError> {
+    fn read_quoted_str(&mut self, max_len: usize) -> Result<String, DeserializeError> {
         let mut result = String::with_capacity(4);
         macro_rules! write {
             ( $chr: expr ) => {
@@ -236,13 +235,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
             if self.current == QUOTE {
                 self.read_char()?;
                 if self.current != QUOTE {
-                    match ImmutableString::new(&result) {
-                        Ok(val) => return Ok(val),
-                        Err(err) => {
-                            let msg = format!("[char: {}] Error on immutable string construction: {:?}.", self.read_chars, err);
-                            return Err(DeserializeError::FormatError(msg));
-                        }
-                    }
+                    return Ok(result);
                 }
                 write!(QUOTE);
                 continue;
@@ -256,7 +249,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         return Err(DeserializeError::FormatError(msg));
     }
 
-    fn read_unquoted_str(&mut self, max_len: usize) -> Result<ImmutableString, DeserializeError> {
+    fn read_unquoted_str(&mut self, max_len: usize) -> Result<String, DeserializeError> {
         let mut result = String::with_capacity(4);
         macro_rules! write {
             ( $chr: expr ) => {
@@ -273,13 +266,7 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         let specials = special_chars();
         for _ in 0..max_len {
             if self.current.is_whitespace() || specials.contains(&self.current) {
-                match ImmutableString::new(&result) {
-                    Ok(val) => return Ok(val),
-                    Err(err) => {
-                        let msg = format!("[char: {}] Error on immutable string construction: {:?}.", self.read_chars, err);
-                        return Err(DeserializeError::FormatError(msg));
-                    }
-                }
+                return Ok(result);
             }
             write!(self.current);
             self.read_char()?;

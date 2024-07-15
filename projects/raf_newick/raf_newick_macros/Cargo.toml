@@ -8,4 +8,7 @@ rust-version.workspace = true
 proc-macro = true
 
 [dependencies]
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
 raf_newick_impl = { path = "../raf_newick_impl" }

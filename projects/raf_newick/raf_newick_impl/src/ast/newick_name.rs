@@ -37,9 +37,14 @@ impl NewickName {
     /// # Safety
     /// Length of `text` cannot exceed exceed [`NewickName::max_len()`] otherwise
     /// the behaviour is undefined.
+    /// 
+    /// # Panics
+    /// Only when can't allocate internal buffer.
     #[inline(always)]
-    pub unsafe fn new_unchecked(text: ImmutableString) -> NewickName {
-        Self { value: text }
+    pub unsafe fn new_unchecked(text: &str) -> NewickName {
+        let imm = ImmutableString::new(text)
+            .expect("InternalAllocationError");
+        Self { value: imm }
     }
 
     #[inline(always)]
