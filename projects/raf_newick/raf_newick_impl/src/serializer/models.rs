@@ -3,7 +3,7 @@
     clippy::cast_possible_truncation,
     clippy::cast_sign_loss)]
 
-use std::{collections::HashSet, io::Write};
+use std::io::Write;
 
 use crate::{
     common::{
@@ -16,7 +16,7 @@ use crate::{
         QUOTE,
         RIGHT_BRACKET,
         SEMICOLON},
-    models::{
+    ast::{
         NewickGraph, NewickName, NewickNodeId, NewickReticulation, NewickReticulationKind, NewickWeight}};
 
 use super::{SerializeError, SerializeOk};
@@ -25,7 +25,6 @@ pub struct Serializer<'a, TWrite: Write> {
     output: &'a mut TWrite,
     graph: &'a NewickGraph,
     written_bytes: usize,
-    seen_reticulations: HashSet<NewickNodeId>,
 }
 
 impl<'a, TWrite: Write> Serializer<'a, TWrite> {
@@ -34,7 +33,6 @@ impl<'a, TWrite: Write> Serializer<'a, TWrite> {
             output: output,
             graph: graph,
             written_bytes: 0,
-            seen_reticulations: HashSet::new(),
         }
     }
 
@@ -57,14 +55,7 @@ impl<'a, TWrite: Write> Serializer<'a, TWrite> {
             return Err(SerializeError::invalid("Graph has invalid nodes."));
         };
 
-        let ret_data = node.reticulation();
-        if ret_data.is_some() {
-            if self.seen_reticulations.insert(node_id) {
-                self.serialize_children(node_id)?;
-            }
-        } else {
-            self.serialize_children(node_id)?;
-        }
+        self.serialize_children(node_id)?;
 
         let name = node.name().as_str();
         if !name.is_empty() {
@@ -75,7 +66,7 @@ impl<'a, TWrite: Write> Serializer<'a, TWrite> {
             self.serialize_weight(weight)?;
         }
 
-        if let Some(ret) = ret_data {
+        if let Some(ret) = node.reticulation() {
             self.serialize_reticulation(ret)?;
         }
 

@@ -9,7 +9,7 @@
 )]
 mod common;
 mod validation;
-pub mod models;
+pub mod ast;
 pub mod serializer;
 pub mod deserializer;
 

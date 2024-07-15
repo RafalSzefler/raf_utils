@@ -1,4 +1,4 @@
-use crate::models::NewickGraph;
+use crate::ast::NewickGraph;
 
 pub struct DeserializeOk {
     pub graph: NewickGraph,

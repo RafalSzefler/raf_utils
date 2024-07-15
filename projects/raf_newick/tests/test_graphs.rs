@@ -1,9 +1,6 @@
 use raf_newick::{
-    models::{
-        NewickName,
-        NewickWeight,
-        OptionalNewickReticulation,
-        OptionalNewickWeight},
+    ast::{
+        NewickName, NewickReticulation, NewickReticulationKind, NewickWeight, OptionalNewickReticulation, OptionalNewickWeight},
     serializer::Serializer,
     NewickGraphBuilder};
 use raf_newick_tests_helpers::convert_to_graph;
@@ -65,4 +62,48 @@ fn test_simple(
     let result = serializer.serialize().unwrap();
     let text = core::str::from_utf8(&output[0..result.written_bytes]).unwrap();
     assert_eq!(text, expected);
+}
+
+
+#[test]
+fn test_reticulation() {
+    let mut builder = NewickGraphBuilder::default();
+    let leaf1 = builder.add_node(
+        NewickName::new("A").unwrap(),
+        OptionalNewickWeight::none(),
+        OptionalNewickReticulation::none(),
+        &[]);
+    let leaf2 = builder.add_node(
+        NewickName::new("B").unwrap(),
+        OptionalNewickWeight::none(),
+        OptionalNewickReticulation::some(
+            NewickReticulation::new(1, NewickReticulationKind::default()).unwrap(),
+        ),
+        &[]);
+    let leaf3 = builder.add_node(
+        NewickName::new("C").unwrap(),
+        OptionalNewickWeight::none(),
+        OptionalNewickReticulation::none(),
+        &[]);
+    let internal1 = builder.add_node(
+        NewickName::default(),
+        OptionalNewickWeight::none(),
+        OptionalNewickReticulation::none(),
+        &[leaf1, leaf2]);
+    let internal2 = builder.add_node(
+        NewickName::default(),
+        OptionalNewickWeight::none(),
+        OptionalNewickReticulation::none(),
+        &[leaf2, leaf3]);
+    let _root = builder.add_node(
+        NewickName::default(),
+        OptionalNewickWeight::none(),
+        OptionalNewickReticulation::none(),
+        &[internal1, internal2]);
+    let graph = builder.build().unwrap();
+    let mut output = Vec::new();
+    let serializer = Serializer::new(&mut output, &graph);
+    let result = serializer.serialize().unwrap();
+    let text = core::str::from_utf8(&output[0..result.written_bytes]).unwrap();
+    assert_eq!(text, "((A,B#1),(B#1,C));");
 }

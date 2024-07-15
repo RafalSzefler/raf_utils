@@ -7,7 +7,7 @@ use std::collections::HashSet;
 
 use smallvec::SmallVec;
 
-use crate::{models::{NewickNode, NewickNodeId}, InvalidGraphError};
+use crate::{ast::{NewickNode, NewickNodeId}, InvalidGraphError};
 
 pub(crate) struct TemporaryGraph<'a> {
     pub nodes: &'a Vec<NewickNode>,
@@ -18,7 +18,6 @@ pub(crate) struct TemporaryGraph<'a> {
 pub(crate) fn validate(graph: &TemporaryGraph) -> Result<(), InvalidGraphError> {
     // It is important for those validations to run in this specific order.
     validate_basic_properties(graph)?;
-    validate_reticulations(graph)?;
     let root = validate_and_get_root(graph)?;
     let mut seen = HashSet::new();
     acyclic_scan_with_validation(root, &mut seen, graph)?;
@@ -64,26 +63,6 @@ fn validate_and_get_root(graph: &TemporaryGraph) -> Result<NewickNodeId, Invalid
     }
 }
 
-fn validate_reticulations(graph: &TemporaryGraph) -> Result<(), InvalidGraphError> {    
-    let mut reticulation_ids = HashSet::new();
-    for node in graph.nodes {
-        let idx = node.id().value() as usize;
-        let preds = &graph.predecessors[idx];
-
-        if let Some(ret) = node.reticulation() {
-            if !reticulation_ids.insert(ret.id()) {
-                return Err(InvalidGraphError::InconsistentReticulations);
-            }
-            if preds.len() < 2 {
-                return Err(InvalidGraphError::InconsistentReticulations);
-            }
-        } else if preds.len() >= 2 {
-            return Err(InvalidGraphError::InconsistentReticulations);
-        }
-    }
-
-    Ok(())
-}
 
 fn validate_basic_properties(graph: &TemporaryGraph) -> Result<(), InvalidGraphError> {
     let nodes_len = graph.nodes.len();

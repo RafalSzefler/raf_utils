@@ -5,7 +5,7 @@
 use smallvec::SmallVec;
 
 use crate::{
-    models::{
+    ast::{
         NewickGraph,
         NewickName,
         NewickNode,
@@ -24,7 +24,6 @@ pub struct NewickGraphBuilder {
 pub enum InvalidGraphError {
     EmptyGraph,
     InconsistentNodeIds,
-    InconsistentReticulations,
     MultipleRoots,
     Cyclic,    
 }
@@ -52,8 +51,6 @@ impl NewickGraphBuilder {
     /// * [`InvalidGraphError::EmptyGraph`] if did not add any nodes
     /// * [`InvalidGraphError::InconsistentNodeIds`] if ids are inconsistent, e.g.
     /// when passed `children` with id not pointing to any node.
-    /// * [`InvalidGraphError::InconsistentReticulations`] when reticulation data
-    /// doesn't actually correspond to reticulation nodes
     /// * [`InvalidGraphError::MultipleRoots`] if graph has more than 1 root
     /// (i.e. node without predecessors)
     /// * [`InvalidGraphError::Cyclic`] if graph contains cycles

@@ -11,7 +11,7 @@
 use std::collections::{hash_map::Entry, HashMap};
 
 use raf_newick_impl::{
-    models::{
+    ast::{
         NewickGraph,
         NewickName,
         NewickNodeId,

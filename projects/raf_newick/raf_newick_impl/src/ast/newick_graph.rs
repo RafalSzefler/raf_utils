@@ -37,8 +37,8 @@ impl NewickGraph {
     }
 
     #[inline(always)]
-    pub fn iter_nodes(&self) -> impl Iterator<Item=&NewickNode> {
-        self.nodes.iter()
+    pub fn nodes(&self) -> &[NewickNode] {
+        &self.nodes
     }
 
     #[allow(clippy::missing_panics_doc)]
