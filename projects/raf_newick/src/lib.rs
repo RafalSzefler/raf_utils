@@ -7,7 +7,12 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod array;
-mod impls;
 
-pub use array::Array;
+#[doc(hidden)]
+extern crate raf_newick_impl;
+
+#[doc(hidden)]
+extern crate raf_newick_macros;
+
+pub use raf_newick_impl::*;
+pub use raf_newick_macros::*;

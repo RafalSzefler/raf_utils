@@ -1,8 +1,9 @@
-use core::hash::{Hash, Hasher};
-use std::{alloc::Layout, ptr::{self, null_mut}};
+use std::{
+    alloc::Layout,
+    ptr::{self, null_mut}};
 
 /// Represents a dynamically created array with length known at runtime.
-/// Otherwise a thin wrapper around slices.
+/// Generally a thin wrapper around slices.
 pub struct Array<T>
     where T: Sized
 {
@@ -15,26 +16,10 @@ impl<T> Array<T>
 {
     const ALIGNEMENT: usize = {
         let alignement = core::mem::align_of::<T>();
-        assert!(alignement.is_power_of_two(), "Alignement is not power of two.");
+        let size = core::mem::size_of::<T>();
+        assert!(alignement.is_power_of_two(), "ALIGNEMENT is not power of two.");
+        assert!(size % alignement == 0, "size_of::<T>() not correctly aligned.");
         alignement
-    };
-
-    pub const ALIGNED_SIZE: usize = {
-        let result = {
-            let size = core::mem::size_of::<T>();
-            let align = Self::ALIGNEMENT;
-            if (size % align) == 0 {
-                size
-            }
-            else
-            {
-                let len_rounded_up 
-                    = size.wrapping_add(align).wrapping_sub(1) & !align.wrapping_sub(1);
-                len_rounded_up.wrapping_sub(size)
-            }
-        };
-        assert!(result.is_power_of_two(), "Aligned size not power of two.");
-        result
     };
 
     pub const fn max() -> usize { (i32::MAX - 1024) as usize }
@@ -42,7 +27,7 @@ impl<T> Array<T>
     const fn layout(length: usize) -> Layout {
         unsafe {
             Layout::from_size_align_unchecked(
-                length * Self::ALIGNED_SIZE,
+                length * core::mem::size_of::<T>(),
                 Self::ALIGNEMENT)
         }
     }
@@ -52,7 +37,7 @@ impl<T> Array<T>
     /// 
     /// # Panics
     /// Only when `length` is bigger than [`Self::max()`].
-    pub fn new_with_fill<F: Fn()->T>(length: usize, factory: F) -> Self {
+    pub fn new_with_fill<F: FnMut()->T>(length: usize, factory: &mut F) -> Self {
         assert!(length < Self::max(), "Length must be smaller than {}.", Self::max());
 
         if length == 0 {
@@ -83,27 +68,6 @@ impl<T> Array<T>
     }
 }
 
-impl<T> Array<T>
-    where T: Sized + Default
-{
-    /// Creates a new instance of [`Array`]. It allocates the corresponding
-    /// buffer on heap and fills it with `T::default()`.
-    /// 
-    /// # Panics
-    /// Only when `length` is bigger than [`Self::max()`].
-    pub fn new(length: usize) -> Self {
-        Self::new_with_fill(length, T::default)
-    }
-}
-
-impl<T> Default for Array<T>
-    where T: Sized
-{
-    fn default() -> Self {
-        Self { ptr: null_mut(), length: 0 }
-    }
-}
-
 impl<T> Drop for Array<T>
     where T: Sized
 {
@@ -121,6 +85,14 @@ impl<T> Drop for Array<T>
     }
 }
 
+impl<T> Default for Array<T>
+    where T: Sized
+{
+    fn default() -> Self {
+        Self { ptr: null_mut(), length: 0 }
+    }
+}
+
 impl<T> core::fmt::Debug for Array<T>
     where T: Sized
 {
@@ -130,28 +102,5 @@ impl<T> core::fmt::Debug for Array<T>
             .field("address", &numeric_value)
             .field("length", &self.length)
             .finish()
-    }
-}
-
-
-impl<T> PartialEq for Array<T>
-    where T: Sized + PartialEq
-{
-    fn eq(&self, other: &Self) -> bool {
-        self.as_slice() == other.as_slice()
-    }
-}
-
-
-impl<T> Eq for Array<T>
-    where T: Sized + Eq
-{ }
-
-
-impl<T> Hash for Array<T>
-    where T: Sized + Hash
-{
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.as_slice().hash(state);
     }
 }

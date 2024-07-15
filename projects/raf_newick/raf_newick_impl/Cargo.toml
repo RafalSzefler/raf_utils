@@ -1,0 +1,12 @@
+[package]
+name = "raf_newick_impl"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+smallvec = { workspace = true }
+ctor = { workspace = true }
+raf_array = { path = "../../raf_array", version = "0.1.0"  }
+raf_fnv1a_hasher = { path = "../../raf_fnv1a_hasher", version = "0.1.0" }
+raf_immutable_string = { path = "../../raf_immutable_string", version = "0.1.0" }

@@ -36,3 +36,30 @@ fn test_baz_array() {
         assert_eq!(item.value, 7);
     }
 }
+
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct CloneTest {
+    pub value: i32,
+}
+
+#[test]
+fn test_array_clone() {
+    let mut idx = 0;
+    let mut factory = || {
+        let data = CloneTest { value: idx };
+        idx += 1;
+        data
+    };
+
+    let array = Array::<CloneTest>::new_with_fill(4, &mut factory);
+    
+    let clone = array.clone();
+    let clone2 = clone.clone();
+
+    assert_eq!(array, clone);
+    assert_eq!(array, clone2);
+    assert_eq!(clone, clone2);
+    drop(array);
+    assert_eq!(clone, clone2);
+}

@@ -7,7 +7,10 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod array;
-mod impls;
+mod common;
+pub mod ast;
+pub mod serializer;
+pub mod deserializer;
 
-pub use array::Array;
+#[doc(hidden)]
+pub mod macro_helpers;
