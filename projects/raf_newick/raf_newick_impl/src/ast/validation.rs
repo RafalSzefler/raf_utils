@@ -7,7 +7,7 @@ use std::collections::HashSet;
 
 use smallvec::SmallVec;
 
-use crate::{ast::{NewickNode, NewickNodeId}, InvalidGraphError};
+use super::{InvalidGraphError, NewickNode, NewickNodeId};
 
 pub(crate) struct TemporaryGraph<'a> {
     pub nodes: &'a Vec<NewickNode>,

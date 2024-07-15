@@ -1,8 +1,13 @@
 use raf_newick::{
     ast::{
-        NewickName, NewickReticulation, NewickReticulationKind, NewickWeight, OptionalNewickReticulation, OptionalNewickWeight},
-    serializer::Serializer,
-    NewickGraphBuilder};
+        NewickGraphBuilder,
+        NewickName,
+        NewickReticulation,
+        NewickReticulationKind,
+        NewickWeight,
+        OptionalNewickReticulation,
+        OptionalNewickWeight},
+    serializer::Serializer};
 use raf_newick_tests_helpers::convert_to_graph;
 use rstest::rstest;
 

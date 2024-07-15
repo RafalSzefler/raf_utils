@@ -10,16 +10,16 @@
 
 use std::collections::{hash_map::Entry, HashMap};
 
-use raf_newick_impl::{
-    ast::{
-        NewickGraph,
-        NewickName,
-        NewickNodeId,
-        NewickReticulation,
-        NewickReticulationKind,
-        OptionalNewickReticulation,
-        OptionalNewickWeight},
-    NewickGraphBuilder};
+use raf_newick_impl::ast::{
+    NewickGraph,
+    NewickGraphBuilder,
+    NewickName,
+    NewickNodeId,
+    NewickReticulation,
+    NewickReticulationKind,
+    OptionalNewickReticulation,
+    OptionalNewickWeight};
+
 
 pub fn convert_to_graph(arrows: &[(u32, u32)], names: &[(u32, &str)]) -> NewickGraph {
     let mut successors = HashMap::<u32, Vec<u32>>::new();

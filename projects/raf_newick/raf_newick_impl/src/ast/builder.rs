@@ -4,15 +4,15 @@
     clippy::cast_possible_wrap)]
 use smallvec::SmallVec;
 
-use crate::{
-    ast::{
-        NewickGraph,
-        NewickName,
-        NewickNode,
-        NewickNodeId,
-        OptionalNewickReticulation,
-        OptionalNewickWeight},
-    validation::{validate, TemporaryGraph}};
+use super::{
+    validation::{validate, TemporaryGraph},
+    NewickGraph,
+    NewickName,
+    NewickNode,
+    NewickNodeId,
+    OptionalNewickReticulation,
+    OptionalNewickWeight};
+
 
 #[derive(Default)]
 pub struct NewickGraphBuilder {
