@@ -7,7 +7,7 @@ use raf_newick::{
         NewickWeight,
         OptionalNewickReticulation,
         OptionalNewickWeight},
-    serializer::Serializer};
+    serializer::{serialize_to_string, serialize}};
 use raf_newick_tests_helpers::convert_to_graph;
 use rstest::rstest;
 
@@ -42,10 +42,12 @@ fn test_first() {
         &[internal, leaf3]);
     let graph = builder.build().unwrap();
     let mut output = Vec::new();
-    let serializer = Serializer::new(&mut output, &graph);
-    let result = serializer.serialize().unwrap();
+    let result = serialize(&mut output, &graph).unwrap();
     let text = core::str::from_utf8(&output[0..result.written_bytes]).unwrap();
     assert_eq!(text, "((A,B),C:1.7)ROOT;");
+
+    let text2 = serialize_to_string(&graph).unwrap();
+    assert_eq!(text, text2);
 }
 
 
@@ -63,10 +65,12 @@ fn test_simple(
 ) {
     let graph = convert_to_graph(graph_data, names_map);
     let mut output = Vec::new();
-    let serializer = Serializer::new(&mut output, &graph);
-    let result = serializer.serialize().unwrap();
+    let result = serialize(&mut output, &graph).unwrap();
     let text = core::str::from_utf8(&output[0..result.written_bytes]).unwrap();
     assert_eq!(text, expected);
+
+    let text2 = serialize_to_string(&graph).unwrap();
+    assert_eq!(text, text2);
 }
 
 
@@ -107,8 +111,10 @@ fn test_reticulation() {
         &[internal1, internal2]);
     let graph = builder.build().unwrap();
     let mut output = Vec::new();
-    let serializer = Serializer::new(&mut output, &graph);
-    let result = serializer.serialize().unwrap();
+    let result = serialize(&mut output, &graph).unwrap();
     let text = core::str::from_utf8(&output[0..result.written_bytes]).unwrap();
     assert_eq!(text, "((A,B#1),(B#1,C));");
+
+    let text2 = serialize_to_string(&graph).unwrap();
+    assert_eq!(text, text2);
 }

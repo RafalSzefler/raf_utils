@@ -21,7 +21,7 @@ use crate::{
 
 use super::{SerializeError, SerializeOk};
 
-pub struct Serializer<'a, TWrite: Write> {
+pub(crate) struct Serializer<'a, TWrite: Write> {
     output: &'a mut TWrite,
     graph: &'a NewickGraph,
     written_bytes: usize,
@@ -36,11 +36,6 @@ impl<'a, TWrite: Write> Serializer<'a, TWrite> {
         }
     }
 
-    /// Writes graph to the underlying stream.
-    /// 
-    /// # Errors
-    /// * [`SerializeError::InvalidInput`] if graph is inconsistent
-    /// * [`SerializeError::OutputError`] if couldn't write to underlying stream
     pub fn serialize(mut self) -> Result<SerializeOk, SerializeError> {
         let root = self.graph.root();
         self.serialize_node(root)?;

@@ -2,6 +2,35 @@ mod ok;
 mod error;
 mod models;
 
+use std::io::Read;
+
 pub use ok::*;
 pub use error::*;
-pub use models::*;
+
+#[allow(unused_imports)]
+use crate::ast::NewickGraph;  // For docs only.
+
+
+/// Deserializes instance of [`NewickGraph`] from [`Read`].
+/// 
+/// # Errors
+/// * [`DeserializeError::InputError`] if invalid input
+/// * [`DeserializeError::Utf8`] if input is not a valid UTF-8 string
+#[inline(always)]
+pub fn deserialize<TRead: Read>(input: &mut TRead)
+    -> Result<DeserializeOk, DeserializeError>
+{
+    let deserializer = models::Deserializer::new(input);
+    deserializer.deserialize()
+}
+
+/// Deserializes instance of [`NewickGraph`] from [`&str`].
+/// 
+/// # Errors
+/// * [`DeserializeError::InputError`] if invalid input
+/// * [`DeserializeError::Utf8`] if input is not a valid UTF-8 string
+#[inline(always)]
+pub fn deserialize_from_str(input: &str) -> Result<DeserializeOk, DeserializeError> {
+    let mut stream = input.as_bytes();
+    deserialize(&mut stream)
+}
