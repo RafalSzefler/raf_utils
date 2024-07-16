@@ -56,6 +56,9 @@ impl NewickReticulationKind {
 
     #[inline(always)]
     pub fn as_str(&self) -> &str { self.value.as_str() }
+
+    #[inline(always)]
+    pub fn as_immutable_string(&self) -> &ImmutableString { &self.value }
 }
 
 impl Default for NewickReticulationKind {
