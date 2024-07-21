@@ -17,6 +17,7 @@ thread_local! {
         let size = get_shadow_stack_size() + page_size;
         let mut data = region::alloc(size, Protection::READ_WRITE).unwrap();
 
+        #[allow(clippy::cast_sign_loss)]
         {
             let range = data.as_mut_ptr_range::<u8>();
             let slice = core::slice::from_raw_parts_mut(range.start, range.end.offset_from(range.start) as usize);
@@ -50,24 +51,27 @@ impl<'a> Drop for Guard<'a> {
     }
 }
 
-#[inline(always)]
-fn shadow_alloc_with<F1, F2>(size: usize, mut f1: F1, mut f2: F2)
-    where F1: FnMut(&mut [u8]),
-        F2: FnMut(&mut [u8])
-{
-    SHADOW_STACK.try_with(|stack| {
-        unsafe {
-            let data = &mut *stack.get();
-            let current = data.current_end;
-            let new_end = data.current_end.add(size);
-            assert!(new_end <= data.real_end, "Went over shadow stack limit.");
-            data.current_end = new_end;
-            let slice = core::slice::from_raw_parts_mut(current, size);
-            let _guard = Guard { shadow_stack: stack, len: size };
-            f1(slice);
-            f2(slice);
+macro_rules! shadow_alloc {
+    ( $size: expr, $f1: expr, $f2: expr ) => {
+        {
+            SHADOW_STACK.try_with(|stack| {
+                unsafe {
+                    let size = { $size };
+                    let f1 = { $f1 };
+                    let mut f2 = { $f2 };
+                    let data = &mut *stack.get();
+                    let current = data.current_end;
+                    let new_end = data.current_end.add(size);
+                    assert!(new_end <= data.real_end, "Went over shadow stack limit.");
+                    data.current_end = new_end;
+                    let slice = core::slice::from_raw_parts_mut(current, size);
+                    let _guard = Guard { shadow_stack: stack, len: size };
+                    f1(slice);
+                    f2(slice);
+                }
+            }).expect("Couldn't access Thread Local Storage.");
         }
-    }).expect("Couldn't access Thread Local Storage.");
+    };
 }
 
 #[inline]
@@ -77,7 +81,7 @@ pub fn shadow_alloc<F>(size: usize, f: F)
     #[inline(always)]
     fn dummy(_: &mut [u8]) {}
 
-    shadow_alloc_with(size, dummy, f);
+    shadow_alloc!(size, dummy, f);
 }
 
 #[inline]
@@ -87,7 +91,7 @@ pub fn shadow_alloc_zeroed<F>(size: usize, f: F)
     #[inline(always)]
     fn zero(buf: &mut [u8]) { buf.fill(0); }
 
-    shadow_alloc_with(size, zero, f);
+    shadow_alloc!(size, zero, f);
 }
 
 
