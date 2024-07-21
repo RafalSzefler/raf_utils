@@ -8,7 +8,7 @@ use smallvec::SmallVec;
 use super::{NewickNode, NewickNodeId};
 
 
-#[derive(PartialEq, Eq, Hash, Clone)]
+#[derive(Debug, PartialEq, Eq, Hash, Clone)]
 pub struct NewickGraph {
     nodes: Vec<NewickNode>,
     children: Vec<SmallVec<[NewickNodeId; 2]>>,
@@ -66,14 +66,4 @@ impl NewickGraph {
 
     #[inline(always)]
     pub fn root(&self) -> NewickNodeId { self.root }
-}
-
-
-impl core::fmt::Debug for NewickGraph {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("NewickGraph")
-            .field("nodes_len", &self.nodes.len())
-            .field("root", &self.root)
-            .finish()
-    }
 }

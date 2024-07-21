@@ -102,6 +102,7 @@ fn convert_node(node: &NewickNode) -> TokenStream {
     }
 }
 
+#[allow(clippy::cast_sign_loss)]
 fn convert_node_children(node: &NewickNode, children: &[NewickNodeId]) -> TokenStream {
     if children.is_empty() {
         return TokenStream::new();

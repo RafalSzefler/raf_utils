@@ -1,4 +1,4 @@
-use raf_shadow_alloc::{get_shadow_stack_size, shadow_alloc, shadow_alloc_zeroed};
+use raf_shadow_alloc::{get_available_shadow_stack_size, get_shadow_stack_size, shadow_alloc, shadow_alloc_zeroed};
 
 #[test]
 fn test_shadow_alloc() {
@@ -41,4 +41,15 @@ fn test_zeroing() {
     shadow_alloc_zeroed(4, |buf| {
         assert_eq!(buf, [0, 0, 0, 0]);
     });
+}
+
+#[test]
+fn test_stack_size() {
+    let size = get_available_shadow_stack_size();
+
+    shadow_alloc(100, |_| {
+        assert_eq!(get_available_shadow_stack_size(), size - 100);
+    });
+
+    assert_eq!(get_available_shadow_stack_size(), size);
 }

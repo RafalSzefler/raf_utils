@@ -6,6 +6,7 @@
     clippy::inline_always,
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
+    clippy::missing_panics_doc,
 )]
 
 use std::collections::{hash_map::Entry, HashMap};
@@ -52,7 +53,7 @@ pub fn convert_to_graph(arrows: &[(u32, u32)], names: &[(u32, &str)]) -> NewickG
 
     let mut builder = NewickGraphBuilder::default();
     let names_map: HashMap<u32, &str> = names.iter()
-        .map(|p| *p)
+        .copied()
         .collect();
 
     let mut seen = HashMap::new();

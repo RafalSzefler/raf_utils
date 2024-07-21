@@ -145,12 +145,9 @@ impl<'a, TRead: Read> Deserializer<'a, TRead> {
         let kind = if self.current.is_alphabetic() {
             let mut text = String::with_capacity(8);
             while self.current.is_alphabetic() {
-                match text.write_char(self.current) {
-                    Ok(_) => {},
-                    Err(err) => {
-                        let msg = format!("[char: {}] Error on temporary text write: {:?}.", self.read_chars, err);
-                        return Err(DeserializeError::FormatError(msg));
-                    },
+                if let Err(err) = text.write_char(self.current) {
+                    let msg = format!("[char: {}] Error on temporary text write: {:?}.", self.read_chars, err);
+                    return Err(DeserializeError::FormatError(msg));
                 }
                 if text.len() > NewickReticulationKind::max_len() {
                     let msg = format!("[char: {}] Max reticulation kind size exceeded.", self.read_chars);

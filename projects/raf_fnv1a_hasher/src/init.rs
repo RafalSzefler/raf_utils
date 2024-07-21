@@ -18,21 +18,32 @@ mod rand_impl {
 
     #[cfg(feature="ctor")]
     mod initial_impl {
+        use std::cell::UnsafeCell;
+
         use ctor::ctor;
 
         use super::create_random_u32_state;
 
-        static mut RANDOM_U32_STATE: u32 = 0;
+        struct CellWrapper {
+            pub value: UnsafeCell<u32>,
+        }
+
+        unsafe impl Sync for CellWrapper { }
+        unsafe impl Send for CellWrapper { }
+
+        static RANDOM_U32_STATE: CellWrapper = CellWrapper { value: UnsafeCell::new(0) };
 
         #[ctor]
         fn initialize_random_state() {
             unsafe {
-                RANDOM_U32_STATE = create_random_u32_state();
+                core::ptr::write(RANDOM_U32_STATE.value.get(), create_random_u32_state());
             }
         }
 
         #[inline(always)]
-        pub(super) fn get() -> u32 { unsafe { RANDOM_U32_STATE } }
+        pub(super) fn get() -> u32 {
+            unsafe { *RANDOM_U32_STATE.value.get() }
+        }
 
     }
 

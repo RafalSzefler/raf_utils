@@ -1,4 +1,4 @@
-
+#![allow(clippy::missing_panics_doc)]
 use std::cell::UnsafeCell;
 
 use region::{Allocation, Protection};
@@ -7,6 +7,7 @@ use crate::shadow_stack_size::get_shadow_stack_size;
 
 struct ShadowStack {
     pub current_end: *mut u8,
+    pub real_end: *mut u8,
     pub _region: Allocation,
 }
 
@@ -16,9 +17,13 @@ thread_local! {
         let size = get_shadow_stack_size() + page_size;
         let mut data = region::alloc(size, Protection::READ_WRITE).unwrap();
         let raw = data.as_mut_ptr_range::<u8>();
-        region::protect(raw.end.sub(page_size), page_size, Protection::NONE).unwrap();
+        let real_end = raw.end.sub(page_size);
+        region::protect(real_end, page_size, Protection::NONE).unwrap();
         let start = data.as_mut_ptr::<u8>();
-        let stack = ShadowStack { current_end: start, _region: data };
+        let stack = ShadowStack {
+            current_end: start,
+            real_end: real_end.sub(1),
+            _region: data };
         UnsafeCell::new(stack)
     };
 }
@@ -47,7 +52,9 @@ fn shadow_alloc_with<F1, F2>(size: usize, mut f1: F1, mut f2: F2)
         unsafe {
             let data = &mut *stack.get();
             let current = data.current_end;
-            data.current_end = data.current_end.add(size);
+            let new_end = data.current_end.add(size);
+            assert!(new_end <= data.real_end, "Went over shadow stack limit.");
+            data.current_end = new_end;
             let slice = core::slice::from_raw_parts_mut(current, size);
             let _guard = Guard { shadow_stack: stack, len: size };
             f1(slice);
@@ -71,9 +78,22 @@ pub fn shadow_alloc_zeroed<F>(size: usize, f: F)
     where F: FnMut(&mut [u8])
 {
     #[inline(always)]
-    fn zero(buf: &mut [u8]) {
-        buf.fill(0);
-    }
+    fn zero(buf: &mut [u8]) { buf.fill(0); }
 
     shadow_alloc_with(size, zero, f);
+}
+
+
+/// Returns available bytes in shadow stack.
+#[allow(clippy::cast_sign_loss)]
+#[inline]
+pub fn get_available_shadow_stack_size() -> usize {
+    SHADOW_STACK.with(|cell_stack| {
+        unsafe {
+            let stack = &*cell_stack.get();
+            let diff = stack.real_end.offset_from(stack.current_end);
+            assert!(diff >= 0, "Negative shadow stack size? Something went wrong.");
+            diff as usize
+        }
+    })
 }

@@ -13,6 +13,11 @@ use proc_macro::TokenStream;
 use syn::{parse_macro_input, LitStr};
 use raf_newick_impl::deserializer::deserialize_from_str;
 
+
+/// Builds [`NewickGraph`] out of literal string.
+/// 
+/// # Panics
+/// When passed string is not a valid graph in Newick format.
 #[proc_macro]
 pub fn newick_graph(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as LitStr);
