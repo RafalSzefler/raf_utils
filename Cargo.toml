@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "projects/raf_array",
+    "projects/raf_shadow_alloc",
     "projects/raf_tagged_pointer",
     "projects/raf_fnv1a_hasher",
     "projects/raf_immutable_string",
@@ -29,3 +30,4 @@ smallvec = "1.13"
 proc-macro2 = "1.0"
 quote = "1.0"
 syn = "2.0"
+region = "3.0.2"

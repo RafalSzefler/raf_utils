@@ -2,6 +2,9 @@ use crate::Array;
 
 use core::hash::{Hash, Hasher};
 
+unsafe impl<T: Sync> Sync for Array<T> {}
+unsafe impl<T: Send> Send for Array<T> {}
+
 impl<T> Array<T>
     where T: Sized + Default
 {
@@ -11,7 +14,7 @@ impl<T> Array<T>
     /// # Panics
     /// Only when `length` is bigger than [`Self::max()`].
     pub fn new(length: usize) -> Self {
-        Self::new_with_fill(length, &mut T::default)
+        Self::new_with_fill(length, T::default)
     }
 }
 
@@ -46,11 +49,11 @@ impl<T> Clone for Array<T>
     fn clone(&self) -> Self {
         let mut idx = 0;
         let slice = self.as_slice();
-        let mut factory = || {
+        let factory = || {
             let result = slice[idx].clone();
             idx += 1;
             result
         };
-        Array::new_with_fill(slice.len(), &mut factory)
+        Array::new_with_fill(slice.len(), factory)
     }
 }

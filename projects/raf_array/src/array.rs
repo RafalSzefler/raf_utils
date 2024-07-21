@@ -22,7 +22,7 @@ impl<T> Array<T>
         alignement
     };
 
-    pub const fn max() -> usize { (i32::MAX - 1024) as usize }
+    pub const fn max_len() -> usize { (i32::MAX - 1024) as usize }
 
     const fn layout(length: usize) -> Layout {
         unsafe {
@@ -36,9 +36,11 @@ impl<T> Array<T>
     /// buffer on heap and fills it with values generated through `factory`.
     /// 
     /// # Panics
-    /// Only when `length` is bigger than [`Self::max()`].
-    pub fn new_with_fill<F: FnMut()->T>(length: usize, factory: &mut F) -> Self {
-        assert!(length < Self::max(), "Length must be smaller than {}.", Self::max());
+    /// Only when `length` is bigger than [`Array::max_len()`].
+    pub fn new_with_fill<F>(length: usize, factory: F) -> Self
+        where F: FnMut() -> T
+    {
+        assert!(length < Self::max_len(), "Length must be smaller than {}.", Self::max_len());
 
         if length == 0 {
             return Self::default()
@@ -46,9 +48,13 @@ impl<T> Array<T>
 
         let layout = Self::layout(length);
         let buffer = (unsafe { std::alloc::alloc_zeroed(layout) }).cast::<T>();
-        for idx in 0..length {
-            let piece = unsafe { buffer.add(idx) };
-            unsafe { *piece = factory() };
+        let mut f = factory;
+        let mut tmp_ptr = buffer;
+        for _ in 0..length {
+            unsafe {
+                ptr::write(tmp_ptr, f());
+                tmp_ptr = tmp_ptr.add(1);
+            }
         }
         Self { ptr: buffer, length: length }
     }
@@ -75,6 +81,16 @@ impl<T> Drop for Array<T>
         let length = self.length;
         if length == 0 {
             return;
+        }
+        
+        unsafe {
+            let mut real_length = length;
+            let mut ptr = self.ptr;
+            while real_length > 0 {
+                ptr::drop_in_place(ptr);
+                ptr = ptr.add(1);
+                real_length -= 1;
+            }
         }
 
         let layout = Self::layout(length);

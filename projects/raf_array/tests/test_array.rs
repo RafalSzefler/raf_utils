@@ -1,3 +1,5 @@
+use std::sync::{Arc, Mutex};
+
 use raf_array::Array;
 
 #[test]
@@ -46,13 +48,13 @@ struct CloneTest {
 #[test]
 fn test_array_clone() {
     let mut idx = 0;
-    let mut factory = || {
+    let factory = || {
         let data = CloneTest { value: idx };
         idx += 1;
         data
     };
 
-    let array = Array::<CloneTest>::new_with_fill(4, &mut factory);
+    let array = Array::<CloneTest>::new_with_fill(4, factory);
     
     let clone = array.clone();
     let clone2 = clone.clone();
@@ -62,4 +64,35 @@ fn test_array_clone() {
     assert_eq!(clone, clone2);
     drop(array);
     assert_eq!(clone, clone2);
+}
+
+
+struct Droppable {
+    counter: Arc<Mutex<usize>>
+}
+
+impl Drop for Droppable {
+    fn drop(&mut self) {
+        let mut guard = self.counter.lock().unwrap();
+        *guard += 1;
+    }
+}
+
+#[test]
+fn test_drop() {
+    const ARRAY_LEN: usize = 4;
+    let counter = Arc::new(Mutex::new(0usize));
+
+    {
+        let clone = counter.clone();
+        let factory = || {
+            Droppable { counter: clone.clone() }
+        };
+        let _array = Array::<Droppable>::new_with_fill(ARRAY_LEN, factory);
+    }
+
+    {
+        let guard = counter.lock().unwrap();
+        assert_eq!(*guard, ARRAY_LEN);
+    }
 }
