@@ -16,6 +16,13 @@ thread_local! {
         let page_size = region::page::size();
         let size = get_shadow_stack_size() + page_size;
         let mut data = region::alloc(size, Protection::READ_WRITE).unwrap();
+
+        {
+            let range = data.as_mut_ptr_range::<u8>();
+            let slice = core::slice::from_raw_parts_mut(range.start, range.end.offset_from(range.start) as usize);
+            slice.fill(0);
+        }
+
         let raw = data.as_mut_ptr_range::<u8>();
         let real_end = raw.end.sub(page_size);
         region::protect(real_end, page_size, Protection::NONE).unwrap();
