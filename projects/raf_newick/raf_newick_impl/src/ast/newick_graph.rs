@@ -24,10 +24,10 @@ impl NewickGraph {
     /// * `root` is within `nodes`
     /// * each node's id corresponds to position in `nodes` vector
     /// * each node's children are encoded at node id's position in
-    /// `children` vector
+    ///   `children` vector
     /// * all ids in `children` vectors are valid
     /// * graph is connected, acyclic with single root (i.e. single node
-    /// without predecessors corresponding to `root` id)
+    ///   without predecessors corresponding to `root` id)
     #[inline(always)]
     pub unsafe fn new_unchecked(
         nodes: Vec<NewickNode>,

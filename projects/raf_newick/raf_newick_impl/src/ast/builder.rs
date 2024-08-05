@@ -50,9 +50,9 @@ impl NewickGraphBuilder {
     /// # Errors
     /// * [`InvalidGraphError::EmptyGraph`] if did not add any nodes
     /// * [`InvalidGraphError::InconsistentNodeIds`] if ids are inconsistent, e.g.
-    /// when passed `children` with id not pointing to any node.
+    ///   when passed `children` with id not pointing to any node.
     /// * [`InvalidGraphError::MultipleRoots`] if graph has more than 1 root
-    /// (i.e. node without predecessors)
+    ///   (i.e. node without predecessors)
     /// * [`InvalidGraphError::Cyclic`] if graph contains cycles
     pub fn build(self) -> Result<NewickGraph, InvalidGraphError> {
         let predecessors = self.build_predecessors();

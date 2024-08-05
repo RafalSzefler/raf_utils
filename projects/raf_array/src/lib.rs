@@ -10,4 +10,4 @@
 mod array;
 mod impls;
 
-pub use array::Array;
+pub use array::*;

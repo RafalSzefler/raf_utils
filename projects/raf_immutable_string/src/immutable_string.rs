@@ -80,10 +80,10 @@ impl ImmutableString {
     /// # Errors
     ///
     /// * [`ConstructionError::LengthTooBig`] if `text.len()` exceeds
-    /// [`ImmutableString::get_max_length()`].
+    ///   [`ImmutableString::get_max_length()`].
     /// 
-    /// * [`ConstructionError::AllocationError`] if is not able
-    /// to allocate memory for new `ImmutableString`.
+    /// * [`ConstructionError::AllocationError`] if is not able to allocate
+    ///   memory for new `ImmutableString`.
     pub fn new(text: &str) -> Result<Self, ConstructionError> {
         if text.is_empty() {
             return Ok(Self::empty().clone());
