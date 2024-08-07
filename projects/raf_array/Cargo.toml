@@ -6,4 +6,5 @@ authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-ctor = { workspace = true }
+const_format = { workspace = true }
+raf_fnv1a_hasher = { path = "../raf_fnv1a_hasher", version = "0.1.0" }

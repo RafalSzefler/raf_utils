@@ -15,7 +15,7 @@ resolver = "2"
 [workspace.package]
 edition = "2021"
 authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
-rust-version = "1.78"
+rust-version = "1.80"
 
 [workspace.dependencies]
 ctor = "0.2"
@@ -31,3 +31,4 @@ proc-macro2 = "1.0"
 quote = "1.0"
 syn = "2.0"
 region = "3.0.2"
+const_format = "0.2.32"

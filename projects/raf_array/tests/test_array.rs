@@ -1,6 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use raf_array::Array;
+use raf_array::array::Array;
 
 #[test]
 fn test_u8_array_1() {
