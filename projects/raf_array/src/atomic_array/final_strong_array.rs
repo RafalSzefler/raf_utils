@@ -72,7 +72,7 @@ impl<T> Hash for FinalStrongArray<T>
     where T: Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.internal.hash(state);
+        self.internal.hash_value().hash(state);
     }
 }
 

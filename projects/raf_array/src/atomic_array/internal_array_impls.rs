@@ -27,7 +27,7 @@ impl<T> Clone for InternalArray<T>
     fn clone(&self) -> Self {
         Self::raw_new(
             self.raw_ptr(),
-            self.data_length())
+            self.data_length() as u32)
     }
 }
 

@@ -11,6 +11,7 @@ use super::{
 
 #[allow(unused_imports)]
 use crate::array::Array;
+use crate::hash_helpers::calculate_hash;
 
 /// Similar to [`Array`], except backed by atomic reference counters.
 pub struct StrongArray<T>
@@ -103,6 +104,21 @@ impl<T> StrongArray<T> {
     }
 }
 
+impl<T> StrongArray<T>
+    where T: Hash
+{    
+    /// Returns the internal hash value for that [`StrongArray`]. The value
+    /// is calculated lazily on the first call to that function.
+    #[inline(always)]
+    pub fn hash_value(&self) -> u32 {
+        let hash_value = self.internal.hash_value();
+        if *hash_value == 0 {
+            *hash_value = calculate_hash(self.as_slice());
+        }
+        *hash_value
+    }
+}
+
 impl<T> Drop for StrongArray<T> {
     fn drop(&mut self) {
         let _ = self.release_mut();
@@ -133,7 +149,7 @@ impl<T> Hash for StrongArray<T>
     where T: Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.internal.hash(state);
+        self.hash_value().hash(state);
     }
 }
 

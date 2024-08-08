@@ -183,10 +183,11 @@ impl<T> LayoutHolder<T>
     };
 
     #[inline(always)]
-    pub fn get_layout_for_length(length: usize) -> Layout {
+    pub fn get_layout_for_length(length: u32) -> Layout {
         let real_alignment = Self::LAYOUT.total_alignment().value();
         let real_length = {
-            let total_size = Self::LAYOUT.data_offset().value() + (length * size_of::<T>());
+            let ulen = length as usize;
+            let total_size = Self::LAYOUT.data_offset().value() + (ulen * size_of::<T>());
             _round_to_power_of(total_size, real_alignment)
         };
         unsafe { Layout::from_size_align_unchecked(real_length, real_alignment) }

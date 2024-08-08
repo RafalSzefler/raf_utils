@@ -6,7 +6,7 @@ use core::{
     alloc::Layout, marker::PhantomData, ptr::drop_in_place
 };
 
-use std::alloc::{alloc_zeroed, dealloc};
+use std::{alloc::{alloc_zeroed, dealloc}, cell::UnsafeCell};
 
 use super::{
     layout_holder::{
@@ -17,7 +17,7 @@ use super::{
 
 #[inline(always)]
 pub(super) const fn max_alloc_size() -> usize {
-    (isize::MAX as usize) - MAX_PREFIX
+    (i32::MAX as usize) - MAX_PREFIX
 }
 
 #[allow(clippy::needless_pass_by_value)]
@@ -32,7 +32,8 @@ pub(super) struct InternalArray<T>
     where T: Sized
 {
     raw_ptr: *mut u8,
-    length: usize,
+    length: u32,
+    hash_value: UnsafeCell<u32>,
     _phantom: PhantomData<T>,
 }
 
@@ -44,11 +45,12 @@ impl<T> InternalArray<T>
     #[inline(always)]
     pub(super) fn raw_new(
         raw_ptr: *mut u8,
-        length: usize
+        length: u32
     ) -> Self {
         Self {
             raw_ptr: raw_ptr,
             length: length,
+            hash_value: UnsafeCell::new(0),
             _phantom: PhantomData
         }
     }
@@ -93,7 +95,7 @@ impl<T> InternalArray<T>
     }
 
     #[inline(always)]
-    pub const fn data_length(&self) -> usize { self.length }
+    pub const fn data_length(&self) -> usize { self.length as usize }
 
     #[inline(always)]
     pub fn as_slice(&self) -> &[T] {
@@ -123,6 +125,11 @@ impl<T> InternalArray<T>
         let numeric = as_usize(self.raw_ptr);
         ArrayId::new(numeric)
     }
+    
+    #[inline(always)]
+    pub fn hash_value(&self) -> &mut u32 {
+        unsafe { &mut *self.hash_value.get() }
+    }
 }
 
 
@@ -133,7 +140,7 @@ impl<T> InternalArray<T> {
     #[inline(always)]
     pub fn allocate_raw(length: usize) -> Result<Self, NewStrongArrayError>
     {
-        let layout = Self::get_layout_for_length(length);
+        let layout = Self::get_layout_for_length(length as u32);
         if layout.size() > max_alloc_size() {
             return Err(NewStrongArrayError::MaxLengthExceeded);
         }
@@ -149,7 +156,7 @@ impl<T> InternalArray<T> {
             return Err(NewStrongArrayError::MisalignedResultError);
         }
 
-        let result = Self::raw_new(raw_ptr, length);
+        let result = Self::raw_new(raw_ptr, length as u32);
         *result.strong_mut() = AtomicType::new(1);
         *result.weak_mut() = AtomicType::new(1);
         Ok(result)
@@ -182,7 +189,7 @@ impl<T> InternalArray<T> {
     const LAYOUT: InternalArrayLayout = LayoutHolder::<T>::LAYOUT;
 
     #[inline(always)]
-    fn get_layout_for_length(length: usize) -> Layout {
+    fn get_layout_for_length(length: u32) -> Layout {
         LayoutHolder::<T>::get_layout_for_length(length)
     }
 }

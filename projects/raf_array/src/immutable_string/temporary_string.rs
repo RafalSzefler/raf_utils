@@ -1,14 +1,16 @@
 use core::hash::{Hash, Hasher};
 
 
-use super::{hash_helpers::calculate_hash, to_byte_slice::ToByteSlice};
+use crate::hash_helpers::calculate_hash;
+
+use super::to_byte_slice::ToByteSlice;
 
 
 #[derive(Clone)]
 pub(super) struct TemporaryString {
     raw_ptr: *const u8,
-    length: usize,
-    hash: u64,
+    length: u32,
+    hash: u32,
 }
 
 unsafe impl Sync for TemporaryString { }
@@ -21,29 +23,24 @@ impl TemporaryString {
         let bytes = value.to_slice();
         Self {
             raw_ptr: bytes.as_ptr(),
-            length: bytes.len(),
+            length: bytes.len() as u32,
             hash: calculate_hash(bytes),
         }
     }
 
     #[inline(always)]
-    pub(super) fn from_byte_slicable_with_hash<T: ?Sized + ToByteSlice>(value: &T, hash: u64) -> Self {
+    pub(super) fn from_byte_slicable_with_hash<T: ?Sized + ToByteSlice>(value: &T, hash: u32) -> Self {
         let bytes = value.to_slice();
         Self {
             raw_ptr: bytes.as_ptr(),
-            length: bytes.len(),
+            length: bytes.len() as u32,
             hash: hash,
         }
     }
 
     #[inline(always)]
-    pub fn hash(&self) -> u64 {
-        self.hash
-    }
-
-    #[inline(always)]
     fn as_slice(&self) -> &[u8] {
-        unsafe { core::slice::from_raw_parts(self.raw_ptr, self.length) }
+        unsafe { core::slice::from_raw_parts(self.raw_ptr, self.length as usize) }
     }
 }
 

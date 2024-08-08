@@ -1,5 +1,4 @@
 mod to_byte_slice;
-mod hash_helpers;
 mod errors;
 mod temporary_string;
 mod weak_string;

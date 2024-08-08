@@ -14,7 +14,6 @@ use super::{
 #[derive(Clone)]
 pub struct ImmutableString {
     array: ManuallyDrop<StrongArray<u8>>,
-    hash: u64,
 }
 
 
@@ -40,22 +39,25 @@ impl ImmutableString {
             return Ok(Self::default());
         }
 
+        if text.len() > Self::max_byte_length() {
+            return Err(NewImmutableStringError::MaxLengthExceeded);
+        }
+
         let tmp = TemporaryString::from_byte_slicable(text);
-        let hash = tmp.hash();
 
         if let Some(weak) = CACHE.get(&tmp) {
             if let Ok(strong) = weak.array().upgrade() {
-                return Ok(Self::from_strong(strong, hash));
+                return Ok(Self::from_strong(strong));
             }
         }
 
         let new_strong = StrongArray::<u8>::copy_slice(text.as_bytes())?;
-        let new_tmp = TemporaryString::from_byte_slicable_with_hash(&new_strong, hash);
+        let new_tmp = TemporaryString::from_byte_slicable_with_hash(&new_strong, new_strong.hash_value());
         let weak = WeakString::from_weak_array(new_strong.downgrade());
 
         CACHE.set(&new_tmp, weak);
 
-        Ok(Self::from_strong(new_strong, new_tmp.hash()))
+        Ok(Self::from_strong(new_strong))
     }
 
     #[inline(always)]
@@ -89,10 +91,9 @@ impl ImmutableString {
     }
 
     #[inline(always)]
-    fn from_strong(strong: StrongArray<u8>, hash: u64) -> Self {
+    fn from_strong(strong: StrongArray<u8>) -> Self {
         Self {
             array: ManuallyDrop::new(strong),
-            hash: hash,
         }
     }
 }
@@ -101,15 +102,13 @@ impl Default for ImmutableString {
     fn default() -> Self {
         Self {
             array: ManuallyDrop::new(StrongArray::default()),
-            hash: 0,
         }
     }
 }
 
 impl PartialEq for ImmutableString {
     fn eq(&self, other: &Self) -> bool {
-        self.hash == other.hash
-            && self.array == other.array
+        self.array == other.array
     }
 }
 
@@ -117,7 +116,7 @@ impl Eq for ImmutableString { }
 
 impl Hash for ImmutableString {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.hash.hash(state);
+        self.array.hash(state);
     }
 }
 
@@ -147,7 +146,7 @@ impl Debug for ImmutableString {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ImmutableString")
             .field("text", &self.as_str())
-            .field("hash", &self.hash)
+            .field("hash", &self.array.hash_value())
             .field("id", &self.id())
             .finish()
     }
