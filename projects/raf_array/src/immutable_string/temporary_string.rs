@@ -27,7 +27,7 @@ impl TemporaryString {
     }
 
     #[inline(always)]
-    pub(super) fn hash_value(&self) -> u32 {
+    pub(super) const fn hash_value(&self) -> u32 {
         self.hash_value
     }
 

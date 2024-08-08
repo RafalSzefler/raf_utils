@@ -47,7 +47,8 @@ impl<T> Default for StrongArray<T>
     /// different `T`. In particular it will never get deallocated. It is
     /// constructed lazily. This is safe, since such array has no elements to
     /// work with, and its length cannot change. Strong/weak counters can still
-    /// change, but they will never go to 0.
+    /// change, but they will never go to 0. This returned instance has
+    /// [`StrongArray::additional_data()`] always set to 0.
     fn default() -> Self {
         const MAX_ALIGNMENT: usize = align_of::<MaxAlignmentStruct>();
         let alignment: usize = align_of::<T>();

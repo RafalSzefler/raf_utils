@@ -10,5 +10,6 @@ impl ArrayId {
         Self { value }
     }
 
-    pub fn value(&self) -> usize { self.value }
+    #[inline(always)]
+    pub const fn value(&self) -> usize { self.value }
 }

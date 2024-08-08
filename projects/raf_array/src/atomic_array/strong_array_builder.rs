@@ -1,6 +1,10 @@
 use std::marker::PhantomData;
 
-use super::{internal_array::InternalArray, NewStrongArrayError, StrongArray};
+use super::{
+    internal_array::InternalArray,
+    NewStrongArrayError,
+    StrongArray,
+};
 
 pub struct StrongArrayBuilder<T>
     where T: Sized

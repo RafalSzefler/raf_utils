@@ -8,7 +8,10 @@ use std::ops::Deref;
 use crate::atomic_array::{StrongArray, StrongArrayBuilder};
 
 use super::{
-    cache::CACHE, errors::NewImmutableStringError, temporary_string::TemporaryString, weak_string::WeakString, StringId
+    cache::CACHE,
+    errors::NewImmutableStringError,
+    temporary_string::TemporaryString,
+    StringId,
 };
 
 #[derive(Clone)]
@@ -46,7 +49,7 @@ impl ImmutableString {
         let tmp = TemporaryString::from_to_params(text);
 
         if let Some(weak) = CACHE.get(&tmp) {
-            if let Ok(strong) = weak.array().upgrade() {
+            if let Ok(strong) = weak.upgrade() {
                 return Ok(Self::from_strong(strong));
             }
         }
@@ -55,9 +58,8 @@ impl ImmutableString {
         strong_builder.set_additional_data(tmp.hash_value());
         let new_strong = strong_builder.build_from_copyable(text.as_bytes())?;
         let new_tmp = TemporaryString::from_to_params(&new_strong);
-        let weak = WeakString::from_weak_array(new_strong.downgrade());
 
-        CACHE.set(&new_tmp, weak);
+        CACHE.set(&new_tmp, new_strong.downgrade());
 
         Ok(Self::from_strong(new_strong))
     }

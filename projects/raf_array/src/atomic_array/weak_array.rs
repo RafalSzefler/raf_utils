@@ -2,7 +2,13 @@ use core::{
     hint::spin_loop,
     mem::forget};
 
-use super::{internal_array::InternalArray, ArrayId, StrongArray, FinalWeakArray, WeakUpgradeError};
+use super::{
+    internal_array::InternalArray,
+    ArrayId,
+    StrongArray,
+    FinalWeakArray,
+    WeakUpgradeError,
+};
 
 
 /// Represents a weak reference to the underlying array. Unlike strong reference

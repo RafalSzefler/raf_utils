@@ -43,7 +43,7 @@ pub(super) struct InternalArray<T>
 impl<T> InternalArray<T>
 {
     #[inline(always)]
-    pub(super) fn raw_new(
+    pub(super) const fn raw_new(
         raw_ptr: *mut u8,
         length: u32,
         additional_data: u32
@@ -55,9 +55,6 @@ impl<T> InternalArray<T>
             _phantom: PhantomData
         }
     }
-
-    #[inline(always)]
-    pub fn raw_ptr(&self) -> *mut u8 { self.raw_ptr }
 
     #[inline(always)]
     pub fn strong_mut(&self) -> &mut AtomicType {
@@ -128,16 +125,16 @@ impl<T> InternalArray<T>
     }
     
     #[inline(always)]
-    pub fn additional_data(&self) -> u32 {
+    pub const fn additional_data(&self) -> u32 {
         self.additional_data
     }
 
     #[allow(clippy::cast_possible_truncation)]
     pub unsafe fn make_alias(&self) -> Self {
         Self::raw_new(
-            self.raw_ptr(),
-            self.data_length() as u32,
-            self.additional_data())
+            self.raw_ptr,
+            self.length,
+            self.additional_data)
     }
 }
 

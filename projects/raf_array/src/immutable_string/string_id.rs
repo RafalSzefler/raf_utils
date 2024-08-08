@@ -7,11 +7,13 @@ pub struct StringId {
 }
 
 impl StringId {
-    pub(super) fn from_array_id(id: ArrayId) -> Self {
+    #[inline(always)]
+    pub(super) const fn from_array_id(id: ArrayId) -> Self {
         Self {
             value: id.value()
         }
     }
 
-    pub fn value(&self) -> usize { self.value }
+    #[inline(always)]
+    pub const fn value(&self) -> usize { self.value }
 }

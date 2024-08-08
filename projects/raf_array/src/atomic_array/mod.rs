@@ -5,7 +5,7 @@ mod array_id;
 mod internal_array;
 mod internal_array_impls;
 mod strong_array;
-mod strong_array_impls;
+mod strong_array_default;
 mod final_strong_array;
 mod weak_array;
 mod final_weak_array;
