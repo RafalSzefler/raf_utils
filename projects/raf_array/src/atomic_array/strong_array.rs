@@ -20,10 +20,6 @@ pub struct StrongArray<T>
 
 
 impl<T> StrongArray<T> {
-    pub(super) fn new_raw(internal: InternalArray<T>) -> Self {
-        Self { internal }
-    }
-
     /// Maximal allowed size of array in bytes.
     pub const fn max_byte_length() -> usize {
         max_alloc_size()
@@ -38,11 +34,11 @@ impl<T> StrongArray<T> {
     #[inline(always)]
     pub fn downgrade(&self) -> WeakArray<T> {
         let _ = self.internal.weak_mut().atomic_add(1);
-        WeakArray::new_raw(self.internal.clone())
+        WeakArray::new_raw(unsafe { self.internal.make_alias() })
     }
 
     /// Releases current [`StrongArray`]. If it was the last [`StrongArray`]
-    /// it returns the final [`UniqueStrongArray`] and [`None`] otherwise.
+    /// it returns the final [`FinalStrongArray`] and [`None`] otherwise.
     #[must_use]
     #[inline(always)]
     pub fn release(mut self) -> Option<FinalStrongArray<T>> {
@@ -74,10 +70,15 @@ impl<T> StrongArray<T> {
     }
 
     #[inline(always)]
+    pub(super) fn new_raw(internal: InternalArray<T>) -> Self {
+        Self { internal }
+    }
+
+    #[inline(always)]
     fn release_mut(&mut self) -> Option<FinalStrongArray<T>> {
         let strong = self.internal.strong_mut();
         if strong.atomic_sub(1) == 1 {
-            Some(FinalStrongArray::new_raw(self.internal.clone()))
+            Some(FinalStrongArray::new_raw(unsafe { self.internal.make_alias() }))
         } else {
             None
         }
@@ -94,7 +95,9 @@ impl<T> Clone for StrongArray<T> {
     /// Clones current [`StrongArray`] by bumping internal strong ref counter.
     fn clone(&self) -> Self {
         let _ = self.internal.strong_mut().atomic_add(1);
-        Self { internal: self.internal.clone() }
+        Self {
+            internal: unsafe { self.internal.make_alias() }
+        }
     }
 }
 

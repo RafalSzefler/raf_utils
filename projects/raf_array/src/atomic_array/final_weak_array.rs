@@ -22,6 +22,11 @@ impl<T> FinalWeakArray<T> {
     /// strong/weak references.
     #[inline(always)]
     pub fn id(&self) -> ArrayId { self.internal.id() }
+
+    #[inline(always)]
+    pub fn additional_data(&self) -> u32 {
+        self.internal.additional_data()
+    }
 }
 
 impl<T> Drop for FinalWeakArray<T> {

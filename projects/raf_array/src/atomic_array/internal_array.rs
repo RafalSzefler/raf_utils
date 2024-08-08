@@ -131,6 +131,14 @@ impl<T> InternalArray<T>
     pub fn additional_data(&self) -> u32 {
         self.additional_data
     }
+
+    #[allow(clippy::cast_possible_truncation)]
+    pub unsafe fn make_alias(&self) -> Self {
+        Self::raw_new(
+            self.raw_ptr(),
+            self.data_length() as u32,
+            self.additional_data())
+    }
 }
 
 

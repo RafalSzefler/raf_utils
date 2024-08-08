@@ -44,7 +44,7 @@ impl<T> WeakArray<T> {
 
             match cas {
                 Ok(_) => {
-                    return Ok(StrongArray::new_raw(self.internal.clone()));
+                    return Ok(StrongArray::new_raw(unsafe { self.internal.make_alias() }));
                 },
                 Err(current_value) => {
                     old_value = current_value;
@@ -56,7 +56,7 @@ impl<T> WeakArray<T> {
     }
 
     /// Releases current [`WeakArray`]. If it was the last [`WeakArray`],
-    /// it returns the final [`UniqueWeakArray`] and [`None`] otherwise.
+    /// it returns the final [`FinalWeakArray`] and [`None`] otherwise.
     #[must_use]
     #[inline(always)]
     pub fn release(mut self) -> Option<FinalWeakArray<T>> {
@@ -91,7 +91,7 @@ impl<T> WeakArray<T> {
     fn release_mut(&mut self) -> Option<FinalWeakArray<T>> {
         let weak = self.internal.weak_mut();
         if weak.atomic_sub(1) == 1 {
-            Some(FinalWeakArray::new_raw(self.internal.clone()))
+            Some(FinalWeakArray::new_raw(unsafe { self.internal.make_alias() }))
         } else {
             None
         }
@@ -108,7 +108,9 @@ impl<T> Clone for WeakArray<T> {
     /// Clones current [`WeakArray`] by bumping internal weak ref counter.
     fn clone(&self) -> Self {
         let _ = self.internal.weak_mut().atomic_add(1);
-        Self { internal: self.internal.clone() }
+        Self {
+            internal: unsafe { self.internal.make_alias() }
+        }
     }
 }
 

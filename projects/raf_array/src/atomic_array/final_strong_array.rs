@@ -35,7 +35,7 @@ impl<T> FinalStrongArray<T> {
     #[inline(always)]
     pub fn downgrade(&self) -> WeakArray<T> {
         let _ = self.internal.weak_mut().atomic_add(1);
-        WeakArray::new_raw(self.internal.clone())
+        WeakArray::new_raw(unsafe { self.internal.make_alias() })
     }
 
     /// Returns a unique identifier for this array. It is shared between
@@ -57,7 +57,8 @@ impl<T> FinalStrongArray<T> {
 
 impl<T> Drop for FinalStrongArray<T> {
     fn drop(&mut self) {
-        let _weak = WeakArray::new_raw(self.internal.clone());
+        let _weak
+            = WeakArray::new_raw(unsafe { self.internal.make_alias() });
     }
 }
 

@@ -22,16 +22,6 @@ impl<T> Hash for InternalArray<T>
     }
 }
 
-impl<T> Clone for InternalArray<T>
-{
-    #[allow(clippy::cast_possible_truncation)]
-    fn clone(&self) -> Self {
-        Self::raw_new(
-            self.raw_ptr(),
-            self.data_length() as u32,
-            self.additional_data())
-    }
-}
 
 impl<T> InternalArray<T>
     where T: Clone
