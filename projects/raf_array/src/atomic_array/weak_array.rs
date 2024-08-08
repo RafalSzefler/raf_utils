@@ -83,6 +83,11 @@ impl<T> WeakArray<T> {
     }
 
     #[inline(always)]
+    pub fn additional_data(&self) -> u32 {
+        self.internal.additional_data()
+    }
+
+    #[inline(always)]
     fn release_mut(&mut self) -> Option<FinalWeakArray<T>> {
         let weak = self.internal.weak_mut();
         if weak.atomic_sub(1) == 1 {

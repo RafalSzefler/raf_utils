@@ -5,13 +5,11 @@ use core::{
 use super::{
     internal_array::{max_alloc_size, InternalArray},
     ArrayId,
-    NewStrongArrayError,
     FinalStrongArray,
     WeakArray};
 
 #[allow(unused_imports)]
 use crate::array::Array;
-use crate::hash_helpers::calculate_hash;
 
 /// Similar to [`Array`], except backed by atomic reference counters.
 pub struct StrongArray<T>
@@ -29,29 +27,6 @@ impl<T> StrongArray<T> {
     /// Maximal allowed size of array in bytes.
     pub const fn max_byte_length() -> usize {
         max_alloc_size()
-    }
-
-    /// Creates a new instance of [`StrongArray`].
-    /// 
-    /// # Notes
-    /// This will allocate memory even when `length == 0`. To get a shared
-    /// empty array use [`StrongArray::default()`].
-    /// 
-    /// # Errors
-    /// * [`NewStrongArrayError::MaxLengthExceeded`] if total byte length
-    ///   exceeds [`StrongArray::max_byte_length()`].
-    /// * [`NewStrongArrayError::AllocationError`] if couldn't allocate
-    ///   underlying memory.
-    /// * [`NewStrongArrayError::MisalignedResultError`] if allocator returned
-    ///   a misaligned pointer.
-    pub fn new<TFactory>(
-        length: usize,
-        factory: TFactory)
-    -> Result<Self, NewStrongArrayError>
-        where TFactory: FnMut() -> T,
-    {
-        let internal = InternalArray::generic_new(length, factory)?;
-        Ok(Self { internal })
     }
 
     #[inline(always)]
@@ -94,6 +69,11 @@ impl<T> StrongArray<T> {
     }
 
     #[inline(always)]
+    pub fn additional_data(&self) -> u32 {
+        self.internal.additional_data()
+    }
+
+    #[inline(always)]
     fn release_mut(&mut self) -> Option<FinalStrongArray<T>> {
         let strong = self.internal.strong_mut();
         if strong.atomic_sub(1) == 1 {
@@ -101,21 +81,6 @@ impl<T> StrongArray<T> {
         } else {
             None
         }
-    }
-}
-
-impl<T> StrongArray<T>
-    where T: Hash
-{    
-    /// Returns the internal hash value for that [`StrongArray`]. The value
-    /// is calculated lazily on the first call to that function.
-    #[inline(always)]
-    pub fn hash_value(&self) -> u32 {
-        let hash_value = self.internal.hash_value();
-        if *hash_value == 0 {
-            *hash_value = calculate_hash(self.as_slice());
-        }
-        *hash_value
     }
 }
 
@@ -149,7 +114,7 @@ impl<T> Hash for StrongArray<T>
     where T: Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.hash_value().hash(state);
+        self.internal.hash(state);
     }
 }
 

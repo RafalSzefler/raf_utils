@@ -1,4 +1,4 @@
-mod to_byte_slice;
+mod to_temporary_string_params;
 mod errors;
 mod temporary_string;
 mod weak_string;

@@ -5,7 +5,7 @@ use core::{
 };
 use std::ops::Deref;
 
-use crate::atomic_array::StrongArray;
+use crate::atomic_array::{StrongArray, StrongArrayBuilder};
 
 use super::{
     cache::CACHE, errors::NewImmutableStringError, temporary_string::TemporaryString, weak_string::WeakString, StringId
@@ -43,7 +43,7 @@ impl ImmutableString {
             return Err(NewImmutableStringError::MaxLengthExceeded);
         }
 
-        let tmp = TemporaryString::from_byte_slicable(text);
+        let tmp = TemporaryString::from_to_params(text);
 
         if let Some(weak) = CACHE.get(&tmp) {
             if let Ok(strong) = weak.array().upgrade() {
@@ -51,8 +51,10 @@ impl ImmutableString {
             }
         }
 
-        let new_strong = StrongArray::<u8>::copy_slice(text.as_bytes())?;
-        let new_tmp = TemporaryString::from_byte_slicable_with_hash(&new_strong, new_strong.hash_value());
+        let mut strong_builder = StrongArrayBuilder::<u8>::default();
+        strong_builder.set_additional_data(tmp.hash_value());
+        let new_strong = strong_builder.build_from_copyable(text.as_bytes())?;
+        let new_tmp = TemporaryString::from_to_params(&new_strong);
         let weak = WeakString::from_weak_array(new_strong.downgrade());
 
         CACHE.set(&new_tmp, weak);
@@ -62,7 +64,7 @@ impl ImmutableString {
 
     #[inline(always)]
     pub fn as_str(&self) -> &str {
-        self.as_ref()
+        unsafe { core::str::from_utf8_unchecked(self.array.as_slice()) }
     }
 
     #[inline(always)]
@@ -116,24 +118,10 @@ impl Eq for ImmutableString { }
 
 impl Hash for ImmutableString {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.array.hash(state);
+        self.array.additional_data().hash(state);
     }
 }
 
-impl AsRef<str> for ImmutableString {
-    #[inline(always)]
-    fn as_ref(&self) -> &str {
-        let slice = self.array.as_slice();
-        unsafe { core::str::from_utf8_unchecked(slice) }
-    }
-}
-
-impl AsRef<[u8]> for ImmutableString {
-    #[inline(always)]
-    fn as_ref(&self) -> &[u8] {
-        self.array.as_slice()
-    }
-}
 
 impl Display for ImmutableString {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -146,7 +134,7 @@ impl Debug for ImmutableString {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ImmutableString")
             .field("text", &self.as_str())
-            .field("hash", &self.array.hash_value())
+            .field("hash", &self.array.additional_data())
             .field("id", &self.id())
             .finish()
     }
@@ -156,7 +144,7 @@ impl Drop for ImmutableString {
     fn drop(&mut self) {
         let array = unsafe { ManuallyDrop::take(&mut self.array) };
         if let Some(unique) = array.release() {
-            let key = TemporaryString::from_byte_slicable(&unique);
+            let key = TemporaryString::from_to_params(&unique);
             CACHE.remove(&key);
         }
     }

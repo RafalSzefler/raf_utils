@@ -24,19 +24,21 @@ impl<T> Hash for InternalArray<T>
 
 impl<T> Clone for InternalArray<T>
 {
+    #[allow(clippy::cast_possible_truncation)]
     fn clone(&self) -> Self {
         Self::raw_new(
             self.raw_ptr(),
-            self.data_length() as u32)
+            self.data_length() as u32,
+            self.additional_data())
     }
 }
 
 impl<T> InternalArray<T>
     where T: Clone
 {
-    pub fn clone_slice(arr: &[T]) -> Result<Self, NewStrongArrayError> {
+    pub fn clone_slice(arr: &[T], additional_data: u32) -> Result<Self, NewStrongArrayError> {
         let length = arr.len();
-        let mut result = Self::allocate_raw(length)?;
+        let mut result = Self::allocate_raw(length, additional_data)?;
         let mut data_ptr = result.data_mut() as *mut T;
         for item in arr {
             unsafe {
@@ -51,9 +53,9 @@ impl<T> InternalArray<T>
 impl<T> InternalArray<T>
     where T: Copy
 {
-    pub fn copy_slice(arr: &[T]) -> Result<Self, NewStrongArrayError> {
+    pub fn copy_slice(arr: &[T], additional_data: u32) -> Result<Self, NewStrongArrayError> {
         let length = arr.len();
-        let mut result = Self::allocate_raw(length)?;
+        let mut result = Self::allocate_raw(length, additional_data)?;
         let data = result.as_slice_mut();
         data.copy_from_slice(arr);
         Ok(result)

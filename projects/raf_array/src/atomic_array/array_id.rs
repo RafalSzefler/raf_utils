@@ -1,4 +1,5 @@
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[repr(transparent)]
 pub struct ArrayId {
     value: usize,
 }

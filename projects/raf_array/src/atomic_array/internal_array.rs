@@ -6,7 +6,7 @@ use core::{
     alloc::Layout, marker::PhantomData, ptr::drop_in_place
 };
 
-use std::{alloc::{alloc_zeroed, dealloc}, cell::UnsafeCell};
+use std::alloc::{alloc_zeroed, dealloc};
 
 use super::{
     layout_holder::{
@@ -33,7 +33,7 @@ pub(super) struct InternalArray<T>
 {
     raw_ptr: *mut u8,
     length: u32,
-    hash_value: UnsafeCell<u32>,
+    additional_data: u32,
     _phantom: PhantomData<T>,
 }
 
@@ -45,12 +45,13 @@ impl<T> InternalArray<T>
     #[inline(always)]
     pub(super) fn raw_new(
         raw_ptr: *mut u8,
-        length: u32
+        length: u32,
+        additional_data: u32
     ) -> Self {
         Self {
             raw_ptr: raw_ptr,
             length: length,
-            hash_value: UnsafeCell::new(0),
+            additional_data: additional_data,
             _phantom: PhantomData
         }
     }
@@ -127,8 +128,8 @@ impl<T> InternalArray<T>
     }
     
     #[inline(always)]
-    pub fn hash_value(&self) -> &mut u32 {
-        unsafe { &mut *self.hash_value.get() }
+    pub fn additional_data(&self) -> u32 {
+        self.additional_data
     }
 }
 
@@ -137,8 +138,10 @@ impl<T> InternalArray<T>
 // * CONSTRUCTORS *
 // ****************
 impl<T> InternalArray<T> {
+    #[allow(clippy::cast_possible_truncation)]
     #[inline(always)]
-    pub fn allocate_raw(length: usize) -> Result<Self, NewStrongArrayError>
+    pub fn allocate_raw(length: usize, additional_data: u32)
+        -> Result<Self, NewStrongArrayError>
     {
         let layout = Self::get_layout_for_length(length as u32);
         if layout.size() > max_alloc_size() {
@@ -156,7 +159,7 @@ impl<T> InternalArray<T> {
             return Err(NewStrongArrayError::MisalignedResultError);
         }
 
-        let result = Self::raw_new(raw_ptr, length as u32);
+        let result = Self::raw_new(raw_ptr, length as u32, additional_data);
         *result.strong_mut() = AtomicType::new(1);
         *result.weak_mut() = AtomicType::new(1);
         Ok(result)
@@ -165,11 +168,12 @@ impl<T> InternalArray<T> {
     #[inline(always)]
     pub fn generic_new<TFactory>(
             length: usize,
+            additional_data: u32,
             mut factory: TFactory)
         -> Result<Self, NewStrongArrayError>
         where TFactory: FnMut() -> T
     {
-        let mut result = Self::allocate_raw(length)?;
+        let mut result = Self::allocate_raw(length, additional_data)?;
         let mut data_ptr = result.data_mut() as *mut T;
         for _ in 0..length {
             unsafe {

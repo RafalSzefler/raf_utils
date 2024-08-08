@@ -1,6 +1,7 @@
 use crate::atomic_array::ArrayId;
 
 #[derive(Debug, PartialEq, Eq, Hash, Clone, Copy)]
+#[repr(transparent)]
 pub struct StringId {
     value: usize,
 }

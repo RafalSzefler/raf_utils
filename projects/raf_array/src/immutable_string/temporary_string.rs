@@ -1,16 +1,12 @@
 use core::hash::{Hash, Hasher};
 
-
-use crate::hash_helpers::calculate_hash;
-
-use super::to_byte_slice::ToByteSlice;
-
+use super::to_temporary_string_params::ToTemporaryStringParams;
 
 #[derive(Clone)]
 pub(super) struct TemporaryString {
     raw_ptr: *const u8,
     length: u32,
-    hash: u32,
+    hash_value: u32,
 }
 
 unsafe impl Sync for TemporaryString { }
@@ -18,24 +14,21 @@ unsafe impl Send for TemporaryString { }
 
 
 impl TemporaryString {
+    #[allow(clippy::cast_possible_truncation)]
     #[inline(always)]
-    pub(super) fn from_byte_slicable<T: ?Sized + ToByteSlice>(value: &T) -> Self {
-        let bytes = value.to_slice();
+    pub(super) fn from_to_params<T: ?Sized + ToTemporaryStringParams>(params: &T) -> Self {
+        let result = params.to_params();
+        let slice = result.slice();
         Self {
-            raw_ptr: bytes.as_ptr(),
-            length: bytes.len() as u32,
-            hash: calculate_hash(bytes),
+            raw_ptr: slice.as_ptr(),
+            length: slice.len() as u32,
+            hash_value: result.hash(),
         }
     }
 
     #[inline(always)]
-    pub(super) fn from_byte_slicable_with_hash<T: ?Sized + ToByteSlice>(value: &T, hash: u32) -> Self {
-        let bytes = value.to_slice();
-        Self {
-            raw_ptr: bytes.as_ptr(),
-            length: bytes.len() as u32,
-            hash: hash,
-        }
+    pub(super) fn hash_value(&self) -> u32 {
+        self.hash_value
     }
 
     #[inline(always)]
@@ -46,7 +39,7 @@ impl TemporaryString {
 
 impl PartialEq for TemporaryString {
     fn eq(&self, other: &Self) -> bool {
-        self.hash == other.hash
+        self.hash_value == other.hash_value
             && self.as_slice() == other.as_slice()
     }
 }
@@ -55,6 +48,6 @@ impl Eq for TemporaryString { }
 
 impl Hash for TemporaryString {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.hash.hash(state);
+        self.hash_value.hash(state);
     }
 }

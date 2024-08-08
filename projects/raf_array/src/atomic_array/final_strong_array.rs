@@ -43,6 +43,11 @@ impl<T> FinalStrongArray<T> {
     #[inline(always)]
     pub fn id(&self) -> ArrayId { self.internal.id() }
 
+    #[inline(always)]
+    pub fn additional_data(&self) -> u32 {
+        self.internal.additional_data()
+    }
+
     /// Returns the number of alive weak references.
     #[inline(always)]
     pub fn weak_count(&self) -> u32 {
@@ -72,7 +77,7 @@ impl<T> Hash for FinalStrongArray<T>
     where T: Hash
 {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        self.internal.hash_value().hash(state);
+        self.internal.hash(state);
     }
 }
 

@@ -4,80 +4,8 @@ use std::sync::LazyLock;
 
 use const_format::formatcp;
 
-use super::{internal_array::InternalArray, NewStrongArrayError, StrongArray};
+use super::{internal_array::InternalArray, StrongArray};
 
-impl<T> StrongArray<T>
-    where T: Clone
-{
-    /// Creates a new instance of [`StrongArray`] by cloning slice.
-    /// 
-    /// # Notes
-    /// This will allocate memory even when slice is empty. To get a shared
-    /// empty array use [`StrongArray::default()`].
-    /// 
-    /// # Errors
-    /// * [`NewStrongArrayError::MaxLengthExceeded`] if total byte length
-    ///   exceeds [`StrongArray::max_byte_length()`].
-    /// * [`NewStrongArrayError::AllocationError`] if couldn't allocate
-    ///   underlying memory.
-    /// * [`NewStrongArrayError::MisalignedResultError`] if allocator returned
-    ///   a misaligned pointer.
-    pub fn clone_slice(slice: &[T])
-        -> Result<Self, NewStrongArrayError>
-    {
-        let internal = InternalArray::clone_slice(slice)?;
-        Ok(Self::new_raw(internal))
-    }
-}
-
-impl<T> StrongArray<T>
-    where T: Copy
-{
-    /// Creates a new instance of [`StrongArray`] by copying slice.
-    /// 
-    /// # Notes
-    /// This will allocate memory even when slice is empty. To get a shared
-    /// empty array use [`StrongArray::default()`].
-    /// 
-    /// # Errors
-    /// * [`NewStrongArrayError::MaxLengthExceeded`] if total byte length
-    ///   exceeds [`StrongArray::max_byte_length()`].
-    /// * [`NewStrongArrayError::AllocationError`] if couldn't allocate
-    ///   underlying memory.
-    /// * [`NewStrongArrayError::MisalignedResultError`] if allocator returned
-    ///   a misaligned pointer.
-    pub fn copy_slice(slice: &[T])
-        -> Result<Self, NewStrongArrayError>
-    {
-        let internal = InternalArray::copy_slice(slice)?;
-        Ok(Self::new_raw(internal))
-    }
-}
-
-impl<T> StrongArray<T>
-    where T: Default
-{
-    /// Creates a new instance of [`StrongArray`] by filling values with default
-    /// value for T.
-    /// 
-    /// # Notes
-    /// This will allocate memory even when `length == 0`. To get a shared
-    /// empty array use [`StrongArray::default()`].
-    /// 
-    /// # Errors
-    /// * [`NewStrongArrayError::MaxLengthExceeded`] if total byte length
-    ///   exceeds [`StrongArray::max_byte_length()`].
-    /// * [`NewStrongArrayError::AllocationError`] if couldn't allocate
-    ///   underlying memory.
-    /// * [`NewStrongArrayError::MisalignedResultError`] if allocator returned
-    ///   a misaligned pointer.
-    pub fn new_default(length: usize)
-        -> Result<Self, NewStrongArrayError>
-    {
-        let internal = InternalArray::generic_new(length, T::default)?;
-        Ok(Self::new_raw(internal))
-    }
-}
 
 #[repr(align(8192))]
 struct MaxAlignmentStruct {
@@ -106,7 +34,7 @@ impl EmptyArrayCell {
 
 static LAZY_CELL: LazyLock<EmptyArrayCell>
     = LazyLock::new(|| {
-        let internal_array = InternalArray::<MaxAlignmentStruct>::allocate_raw(0).unwrap();
+        let internal_array = InternalArray::<MaxAlignmentStruct>::allocate_raw(0, 0).unwrap();
         unsafe {
             core::mem::transmute::<InternalArray<MaxAlignmentStruct>, EmptyArrayCell>(internal_array)
         }

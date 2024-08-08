@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
-use raf_array::atomic_array::StrongArray;
+use raf_array::atomic_array::{StrongArray, StrongArrayBuilder};
+
 
 #[test]
 fn test_atomic_array_1() {
@@ -14,7 +15,7 @@ fn test_atomic_array_1() {
         tmp_value
     };
 
-    let array = StrongArray::new(4, factory).unwrap();
+    let array = StrongArrayBuilder::default().build_from_factory(4, factory).unwrap();
     let expected = &[0, 3, 6, 9];
     assert_eq!(array.as_slice(), expected);
     assert_eq!(array.strong_count(), 1);
@@ -56,7 +57,7 @@ fn test_atomic_array_1_with_release() {
         tmp_value
     };
 
-    let array = StrongArray::new(4, factory).unwrap();
+    let array = StrongArrayBuilder::default().build_from_factory(4, factory).unwrap();
     let expected = &[0, 3, 6, 9];
     assert_eq!(array.as_slice(), expected);
     assert_eq!(array.strong_count(), 1);
@@ -123,7 +124,7 @@ fn test_atomic_array_2() {
         }
     };
 
-    let array = StrongArray::new(7, factory).unwrap();
+    let array = StrongArrayBuilder::default().build_from_factory(7, factory).unwrap();
 
     {
         let guard = vec.lock().unwrap();
@@ -172,7 +173,7 @@ fn test_atomic_array_default() {
         }
     }
 
-    let strong = StrongArray::<Defaulter>::new_default(3).unwrap();
+    let strong = StrongArrayBuilder::<Defaulter>::default().build_default(3).unwrap();
     assert_eq!(strong.as_slice(), [Defaulter { value: -5 }, Defaulter { value: -5 }, Defaulter { value: -5 }]);
 }
 

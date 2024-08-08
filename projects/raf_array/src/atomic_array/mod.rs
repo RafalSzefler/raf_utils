@@ -9,6 +9,7 @@ mod strong_array_impls;
 mod final_strong_array;
 mod weak_array;
 mod final_weak_array;
+mod strong_array_builder;
 
 pub use errors::*;
 pub use array_id::*;
@@ -16,3 +17,4 @@ pub use strong_array::*;
 pub use weak_array::*;
 pub use final_strong_array::*;
 pub use final_weak_array::*;
+pub use strong_array_builder::*;
