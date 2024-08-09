@@ -1,19 +1,17 @@
-use std::{collections::HashMap, sync::OnceLock, time::{Duration, SystemTime}};
+use std::{collections::HashMap, sync::LazyLock, time::{Duration, SystemTime}};
 
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 use raf_structural_logging::{models::{LogDataHolder, SLObject}, template::TemplateBuilder, traits::{LogLevel, StructuralLogHandler}};
 use raf_structural_logging_console::ConsoleHandler;
 
-static TMPL_BUILDER: OnceLock<TemplateBuilder> = OnceLock::new();
-pub fn tmpl_builder() -> &'static TemplateBuilder {
-    TMPL_BUILDER.get_or_init(Default::default)
-}
+static TMPL_BUILDER: LazyLock<TemplateBuilder>
+    = LazyLock::new(TemplateBuilder::default);
 
 #[test]
 fn test1() {
     let now = SystemTime::now();
     let log_level = LogLevel::Info;
-    let template = tmpl_builder().create("test");
+    let template = TMPL_BUILDER.create("test");
     let template_clone = template.clone();
     let sldict = HashMap::new();
     let log_data = LogDataHolder::new(
@@ -32,7 +30,7 @@ fn test1() {
 #[test]
 fn test2() {
     let log_level = LogLevel::Info;
-    let template = tmpl_builder().create("[{created_at}] [{log_level}] [{dur}] {baz} = {xyz}... {arr}");
+    let template = TMPL_BUILDER.create("[{created_at}] [{log_level}] [{dur}] {baz} = {xyz}... {arr}");
     let template_clone = template.clone();
     let mut log_data = LogDataHolder::new(
         log_level,
@@ -54,7 +52,7 @@ fn test2() {
 
 
     let log_level2 = LogLevel::Info;
-    let template2 = tmpl_builder().create("[{created_at}] this is dict: {dct}  ");
+    let template2 = TMPL_BUILDER.create("[{created_at}] this is dict: {dct}  ");
     let mut log_data2 = LogDataHolder::new(
         log_level2,
         template2,

@@ -1,6 +1,6 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
+use std::{collections::HashMap, sync::{Arc, LazyLock, Mutex}};
 
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 use raf_structural_logging::{
     core::CoreLoggerFactoryBuilder,
     models::{LogDataHolder, SLObject},
@@ -37,16 +37,14 @@ impl StructuralLogHandler for TestHandler {
     }
 }
 
-static TMPL_BUILDER: OnceLock<TemplateBuilder> = OnceLock::new();
-pub fn tmpl_builder() -> &'static TemplateBuilder {
-    TMPL_BUILDER.get_or_init(Default::default)
-}
+static TMPL_BUILDER: LazyLock<TemplateBuilder>
+    = LazyLock::new(TemplateBuilder::default);
 
 pub struct TestLog { }
 
 impl StructuralLog for TestLog {
     fn log_data(&self) -> LogDataHolder {
-        let tmpl = tmpl_builder().create("xyz");
+        let tmpl = TMPL_BUILDER.create("xyz");
         LogDataHolder::new(
             LogLevel::Info,
             tmpl,

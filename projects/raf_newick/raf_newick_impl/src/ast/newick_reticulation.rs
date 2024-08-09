@@ -1,5 +1,4 @@
-use raf_immutable_string::ImmutableString;
-
+use raf_array::immutable_string::ImmutableString;
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub struct NewickReticulationKind {
@@ -63,7 +62,7 @@ impl NewickReticulationKind {
 
 impl Default for NewickReticulationKind {
     fn default() -> Self {
-        Self { value: ImmutableString::empty().clone() }
+        Self { value: ImmutableString::default().clone() }
     }
 }
 

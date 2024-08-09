@@ -123,3 +123,12 @@ impl<T> Hash for StrongArray<T>
 
 unsafe impl<T> Sync for StrongArray<T> where T: Sync + Send { }
 unsafe impl<T> Send for StrongArray<T> where T: Sync + Send { }
+
+impl<T> core::fmt::Debug for StrongArray<T>
+    where T: core::fmt::Debug
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("StrongArray")
+            .field("internal", &self.internal).finish()
+    }
+}

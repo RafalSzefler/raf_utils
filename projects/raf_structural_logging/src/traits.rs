@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 
 use crate::models::LogDataHolder;
 

@@ -4,7 +4,6 @@ members = [
     "projects/raf_shadow_alloc",
     "projects/raf_tagged_pointer",
     "projects/raf_fnv1a_hasher",
-    "projects/raf_immutable_string",
     "projects/raf_multi_valued_logic",
     "projects/raf_structural_logging",
     "projects/raf_structural_logging_console",
