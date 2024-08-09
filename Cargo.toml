@@ -1,5 +1,6 @@
 [workspace]
 members = [
+    "projects/raf_readonly",
     "projects/raf_array",
     "projects/raf_shadow_alloc",
     "projects/raf_tagged_pointer",
