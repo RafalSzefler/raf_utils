@@ -43,7 +43,7 @@ pub(super) struct InternalArray<T>
 impl<T> InternalArray<T>
 {
     #[inline(always)]
-    pub(super) const fn raw_new(
+    pub(super) fn raw_new(
         raw_ptr: *mut u8,
         length: u32,
         additional_data: u32

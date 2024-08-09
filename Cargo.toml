@@ -17,7 +17,6 @@ authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
 rust-version = "1.80"
 
 [workspace.dependencies]
-ctor = "0.2"
 getrandom = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

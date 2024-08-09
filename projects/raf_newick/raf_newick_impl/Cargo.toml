@@ -7,6 +7,5 @@ rust-version.workspace = true
 
 [dependencies]
 smallvec = { workspace = true }
-ctor = { workspace = true }
 raf_array = { path = "../../raf_array", version = "0.1.1"  }
 raf_fnv1a_hasher = { path = "../../raf_fnv1a_hasher", version = "0.1.1" }
