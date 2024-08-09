@@ -1,6 +1,8 @@
-use std::{collections::HashMap, sync::{Arc, Mutex, OnceLock}};
+use std::{
+    collections::HashMap,
+    sync::{LazyLock, Mutex}};
 
-use raf_immutable_string::ImmutableString;
+use raf_array::{atomic_array::{StrongArray, StrongArrayBuilder}, immutable_string::ImmutableString};
 
 use super::parser::parse_template_to_pieces;
 
@@ -15,12 +17,11 @@ impl Default for TemplatePiece {
     fn default() -> Self { Self::Empty }
 }
 
-#[derive(Default, Clone, Debug)]
+#[derive(Debug, Default, Clone)]
 pub struct Template {
     raw: ImmutableString,
-    pieces: Arc<Vec<TemplatePiece>>,
+    pieces: StrongArray<TemplatePiece>,
 }
-
 
 impl PartialEq for Template {
     fn eq(&self, other: &Self) -> bool {
@@ -37,13 +38,16 @@ impl core::hash::Hash for Template {
 }
 
 impl Template {
-    fn new(raw: ImmutableString, pieces: Arc<Vec<TemplatePiece>>) -> Self {
+    #[inline(always)]
+    fn new(raw: ImmutableString, pieces: StrongArray<TemplatePiece>) -> Self {
         Self { raw, pieces }
     }
 
+    #[inline(always)]
     pub fn as_immutable_string(&self) -> &ImmutableString { &self.raw }
 
-    pub fn pieces(&self) -> &[TemplatePiece] { &self.pieces }
+    #[inline(always)]
+    pub fn pieces(&self) -> &[TemplatePiece] { self.pieces.as_slice() }
 }
 
 #[derive(Default)]
@@ -63,9 +67,10 @@ impl TemplateBuilder {
         }
 
         let pieces = parse_template_to_pieces(&imm);
+        let strong_pieces = StrongArrayBuilder::default().build_from_clonable(&pieces).unwrap();
         let new_tmpl = Template::new(
             imm.clone(), 
-            Arc::new(pieces));
+            strong_pieces);
 
         {
             let mut guard = self.cache.lock().unwrap();
@@ -80,9 +85,10 @@ impl TemplateBuilder {
 }
 
 
-static LOGGER_NAME: OnceLock<ImmutableString> = OnceLock::new();
-pub fn get_logger_name_key() -> &'static ImmutableString {
-    LOGGER_NAME.get_or_init(|| {
+static LOGGER_NAME: LazyLock<ImmutableString>
+    = LazyLock::new(|| {
         ImmutableString::new("logger_name").unwrap()
-    })
-}
+    });
+
+#[inline(always)]
+pub fn get_logger_name_key() -> &'static ImmutableString { &LOGGER_NAME }

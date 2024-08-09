@@ -4,7 +4,6 @@ members = [
     "projects/raf_shadow_alloc",
     "projects/raf_tagged_pointer",
     "projects/raf_fnv1a_hasher",
-    "projects/raf_immutable_string",
     "projects/raf_multi_valued_logic",
     "projects/raf_structural_logging",
     "projects/raf_structural_logging_console",
@@ -15,10 +14,9 @@ resolver = "2"
 [workspace.package]
 edition = "2021"
 authors = ["Rafal Szefler <rafael.szefler@gmail.com>"]
-rust-version = "1.78"
+rust-version = "1.80"
 
 [workspace.dependencies]
-ctor = "0.2"
 getrandom = "0.2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -30,4 +28,5 @@ smallvec = "1.13"
 proc-macro2 = "1.0"
 quote = "1.0"
 syn = "2.0"
-region = "3.0.2"
+region = "3.0"
+const_format = "0.2"

@@ -1,4 +1,4 @@
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 
 #[derive(PartialEq, Eq, Hash, Clone)]
 pub struct NewickName {
@@ -56,7 +56,7 @@ impl NewickName {
 
 impl Default for NewickName {
     fn default() -> Self {
-        Self { value: ImmutableString::empty().clone() }
+        Self { value: ImmutableString::default().clone() }
     }
 }
 

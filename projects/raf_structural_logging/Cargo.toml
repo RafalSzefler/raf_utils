@@ -1,13 +1,13 @@
 [package]
 name = "raf_structural_logging"
-version = "0.1.0"
+version = "0.1.1"
 edition.workspace = true
 authors.workspace = true
 rust-version.workspace = true
 
 [dependencies]
-raf_immutable_string = { path = "../raf_immutable_string", version = "0.1" }
-raf_fnv1a_hasher = { path = "../raf_fnv1a_hasher", version = "0.1" }
+raf_array = { path = "../raf_array", version = "0.1.1" }
+raf_fnv1a_hasher = { path = "../raf_fnv1a_hasher", version = "0.1.1" }
 
 [dev-dependencies]
 

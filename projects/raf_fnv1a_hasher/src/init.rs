@@ -2,6 +2,8 @@ pub(crate) const FNV1A_32_INITIAL: u32 = 0x811c9dc5;
 
 #[cfg(feature="getrandom")]
 mod rand_impl {
+    use std::sync::LazyLock;
+
     use crate::update_fnv1a_32;
 
     use super::FNV1A_32_INITIAL;
@@ -16,53 +18,11 @@ mod rand_impl {
         return hash;
     }
 
-    #[cfg(feature="ctor")]
-    mod initial_impl {
-        use std::cell::UnsafeCell;
-
-        use ctor::ctor;
-
-        use super::create_random_u32_state;
-
-        struct CellWrapper {
-            pub value: UnsafeCell<u32>,
-        }
-
-        unsafe impl Sync for CellWrapper { }
-        unsafe impl Send for CellWrapper { }
-
-        static RANDOM_U32_STATE: CellWrapper = CellWrapper { value: UnsafeCell::new(0) };
-
-        #[ctor]
-        fn initialize_random_state() {
-            unsafe {
-                core::ptr::write(RANDOM_U32_STATE.value.get(), create_random_u32_state());
-            }
-        }
-
-        #[inline(always)]
-        pub(super) fn get() -> u32 {
-            unsafe { *RANDOM_U32_STATE.value.get() }
-        }
-
-    }
-
-    #[cfg(not(feature="ctor"))]
-    mod initial_impl {
-        use std::sync::OnceLock;
-
-        use super::create_random_u32_state;
-
-        static RANDOM_U32_STATE: OnceLock<u32> = OnceLock::new();
-
-        #[inline(always)]
-        pub(super) fn get() -> u32 { *RANDOM_U32_STATE.get_or_init(create_random_u32_state) }
-    }
+    static RANDOM_U32_STATE: LazyLock<u32>
+        = LazyLock::new(create_random_u32_state);
 
     #[inline(always)]
-    pub(super) fn init_32_hash() -> u32 {
-        initial_impl::get()
-    }
+    pub(super) fn init_32_hash() -> u32 { *RANDOM_U32_STATE }
 }
 
 #[cfg(not(feature="getrandom"))]

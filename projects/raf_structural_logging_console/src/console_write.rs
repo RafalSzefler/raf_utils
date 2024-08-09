@@ -2,7 +2,7 @@
 use std::{collections::HashMap, io::Write, time::SystemTime};
 
 use chrono::{DateTime, SecondsFormat, Utc};
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 use raf_structural_logging::{models::SLObject, traits::LogLevel};
 use termcolor::{Color, ColorSpec, StandardStreamLock, WriteColor};
 

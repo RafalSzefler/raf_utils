@@ -3,11 +3,10 @@ use std::{
     cell::UnsafeCell,
     collections::HashMap,
     sync::{
-        atomic::{AtomicBool, Ordering},
-        OnceLock},
+        atomic::{AtomicBool, Ordering}, LazyLock},
     time::{Duration, SystemTime, UNIX_EPOCH}};
 
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 
 use crate::{
     macros::{readonly, readonly_derive},
@@ -178,15 +177,13 @@ impl Default for LogDataHolder {
     }
 }
 
-static CREATED_AT: OnceLock<ImmutableString> = OnceLock::new();
-fn key_created_at() -> &'static ImmutableString {
-    CREATED_AT.get_or_init(|| { ImmutableString::new("created_at").unwrap() })
-}
+static CREATED_AT: LazyLock<ImmutableString> = LazyLock::new(|| {
+    ImmutableString::new("created_at").unwrap()
+});
 
-static LOG_LEVEL: OnceLock<ImmutableString> = OnceLock::new();
-fn key_log_level() -> &'static ImmutableString {
-    LOG_LEVEL.get_or_init(|| { ImmutableString::new("log_level").unwrap() })
-}
+static LOG_LEVEL: LazyLock<ImmutableString> = LazyLock::new(|| {
+    ImmutableString::new("log_level").unwrap()
+});
 
 impl LogDataHolder {
     pub fn new(
@@ -246,8 +243,8 @@ impl LogDataHolder {
         
         if result.is_ok() {
             let mut new_additional_data = HashMap::with_capacity(4);
-            new_additional_data.insert(key_created_at().clone(), self.created_at.into());
-            new_additional_data.insert(key_log_level().clone(), self.log_level.into());
+            new_additional_data.insert(CREATED_AT.clone(), self.created_at.into());
+            new_additional_data.insert(LOG_LEVEL.clone(), self.log_level.into());
             *additional_data = new_additional_data;
         }
 

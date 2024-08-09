@@ -1,4 +1,4 @@
-use raf_immutable_string::ImmutableString;
+use raf_array::immutable_string::ImmutableString;
 
 use super::TemplatePiece;
 
@@ -109,7 +109,7 @@ fn read_piece(txt: &str) -> (usize, TemplatePiece) {
 }
 
 pub(super) fn parse_template_to_pieces(template: &ImmutableString) -> Vec<TemplatePiece> {
-    if template.is_empty() {
+    if template.as_str().is_empty() {
         return Vec::default();
     }
     

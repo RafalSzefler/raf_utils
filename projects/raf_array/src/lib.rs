@@ -7,7 +7,6 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
-mod array;
-mod impls;
-
-pub use array::*;
+pub mod array;
+pub mod atomic_array;
+pub mod immutable_string;

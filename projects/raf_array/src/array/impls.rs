@@ -1,6 +1,6 @@
-use crate::Array;
-
 use core::hash::{Hash, Hasher};
+
+use super::Array;
 
 unsafe impl<T: Sync> Sync for Array<T> {}
 unsafe impl<T: Send> Send for Array<T> {}
