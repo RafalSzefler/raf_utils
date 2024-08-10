@@ -8,15 +8,15 @@ pub struct Baz<'a> {
     phantom: PhantomData<&'a ()>,
 }
 
-#[readonly]
+#[readonly(ctr_vis=pub, ctr_name=new)]
 #[derive(Debug, PartialEq, Eq, Hash)]
 pub struct User<'a, T>
     where T: PartialEq + Eq + Hash
 {
-    name: String,
-    age: i32,
-    misc: T,
-    x: &'a usize,
+    pub name: String,
+    pub age: i32,
+    pub misc: T,
+    pub x: &'a usize,
 }
 
 #[rstest]
