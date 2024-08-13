@@ -8,11 +8,9 @@ use std::io::Read;
 pub use ok::*;
 pub use error::*;
 
-#[allow(unused_imports)]
-use crate::ast::NewickGraph;  // For docs only.
 
-
-/// Deserializes instance of [`NewickGraph`] from [`Read`].
+/// Deserializes instance of [`NewickGraph`][crate::ast::NewickGraph]
+/// from [`Read`].
 /// 
 /// # Errors
 /// * [`DeserializeError::FormatError`] if not a valid Newick format
@@ -27,7 +25,8 @@ pub fn deserialize<TRead: Read>(input: &mut TRead)
     deserializer.deserialize()
 }
 
-/// Deserializes instance of [`NewickGraph`] from [`&str`].
+/// Deserializes instance of [`NewickGraph`][crate::ast::NewickGraph] from
+/// [`&str`].
 /// 
 /// # Errors
 /// * [`DeserializeError::FormatError`] if not a valid Newick format

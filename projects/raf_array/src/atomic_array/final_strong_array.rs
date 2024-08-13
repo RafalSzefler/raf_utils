@@ -2,9 +2,6 @@ use core::hash::{Hash, Hasher};
 
 use super::{internal_array::InternalArray, ArrayId, WeakArray};
 
-#[allow(unused_imports)]
-use super::StrongArray;
-
 /// The final strong reference to the underlying array. If this instance
 /// exists, then it means that strong ref counter is 0 and it is impossible
 /// to create new strong references. It still is possible to create weak
@@ -30,8 +27,9 @@ impl<T> FinalStrongArray<T> {
 
     /// Creates new [`WeakArray`] from current [`FinalStrongArray`]. Note
     /// that the newly created [`WeakArray`] instance won't be upgradable
-    /// to [`StrongArray`]. The existence of [`FinalStrongArray`] implies
-    /// that there are no more strong references alive.
+    /// to [`StrongArray`][super::StrongArray]. The existence of
+    /// [`FinalStrongArray`] implies that there are no more strong references
+    /// alive.
     #[inline(always)]
     pub fn downgrade(&self) -> WeakArray<T> {
         let _ = self.internal.weak_mut().atomic_add(1);

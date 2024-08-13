@@ -15,7 +15,7 @@ pub fn convert(graph: &NewickGraph) -> TokenStream {
         children_stream.extend(convert_node_children(node, children));
     }
 
-    let root = graph.root().value();
+    let root = graph.root_id().value();
     let nodes_len = graph.nodes().len();
 
     quote! {
@@ -29,7 +29,7 @@ pub fn convert(graph: &NewickGraph) -> TokenStream {
                 ast::{
                     NewickNode,
                     NewickNodeId,
-                    NewickGraphBuilder,
+                    NewickGraph,
                     NewickName,
                     NewickReticulation,
                     NewickReticulationKind,

@@ -1,4 +1,4 @@
-//! Implementation of 32-bit `FNV1a` algorithm.
+//! Implementation of 32-bit `FNV1a` algorithm as a Rust `Hasher`.
 #![warn(clippy::all, clippy::pedantic)]
 #![allow(
     clippy::needless_return,

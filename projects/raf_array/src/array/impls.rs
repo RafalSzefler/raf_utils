@@ -1,6 +1,6 @@
 use core::hash::{Hash, Hasher};
 
-use super::Array;
+use super::{Array, ArrayNewError};
 
 unsafe impl<T: Sync> Sync for Array<T> {}
 unsafe impl<T: Send> Send for Array<T> {}
@@ -11,10 +11,13 @@ impl<T> Array<T>
     /// Creates a new instance of [`Array`]. It allocates the corresponding
     /// buffer on heap and fills it with `T::default()`.
     /// 
-    /// # Panics
-    /// Only when `length` is bigger than [`Array::max_len()`].
-    pub fn new(length: usize) -> Self {
-        Self::new_with_fill(length, T::default)
+    /// # Errors
+    /// * [`ArrayNewError::AllocationError`] when couldn't allocate internal
+    ///   buffer, likely due to running out of memory.
+    /// * [`ArrayNewError::MaxLengthExceeded`] when `length` is greater than
+    ///   [`Array::max_len()`].
+    pub fn new_default(length: usize) -> Result<Self, ArrayNewError> {
+        Self::from_factory(length, T::default)
     }
 }
 
@@ -54,6 +57,6 @@ impl<T> Clone for Array<T>
             idx += 1;
             result
         };
-        Array::new_with_fill(slice.len(), factory)
+        Array::from_factory(slice.len(), factory).unwrap()
     }
 }

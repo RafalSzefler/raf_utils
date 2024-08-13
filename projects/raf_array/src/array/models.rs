@@ -66,6 +66,13 @@ impl<T> Drop for ArrayPieces<T>
 }
 
 
+/// Represents potential errors on array construction.
+#[derive(Debug)]
+pub enum ArrayNewError {
+    AllocationError,
+    MaxLengthExceeded,
+}
+
 /// Represents a dynamically created array with length known at runtime.
 /// Generally a thin wrapper around slices. Similar to `Vec` but it cannot
 /// change size.
@@ -83,29 +90,38 @@ impl<T> Array<T>
     /// Creates a new instance of [`Array`]. It allocates the corresponding
     /// buffer on heap and fills it with values generated through `factory`.
     /// 
-    /// # Panics
-    /// Only when `length` is bigger than [`Array::max_len()`].
-    pub fn new_with_fill<F>(length: usize, factory: F) -> Self
+    /// # Errors
+    /// * [`ArrayNewError::AllocationError`] when couldn't allocate internal
+    ///   buffer, likely due to running out of memory.
+    /// * [`ArrayNewError::MaxLengthExceeded`] when `length` is greater than
+    ///   [`Array::max_len()`].
+    pub fn from_factory<F>(length: usize, mut factory: F) -> Result<Self, ArrayNewError>
         where F: FnMut() -> T
-    {
-        assert!(length < Self::max_len(), "Length must be smaller than {}.", Self::max_len());
-
+    {        
         if length == 0 {
-            return Self::default()
+            return Ok(Self::default());
+        }
+
+        if length > Self::max_len() {
+            return Err(ArrayNewError::MaxLengthExceeded);
         }
 
         let layout = LayoutHelpers::<T>::layout(length);
-        let buffer = (unsafe { std::alloc::alloc_zeroed(layout) }).cast::<T>();
-        let mut f = factory;
+        let raw_ptr = unsafe { std::alloc::alloc_zeroed(layout) };
+        if raw_ptr.is_null() {
+            return Err(ArrayNewError::AllocationError);
+        }
+        
+        let buffer = raw_ptr.cast::<T>();
         let mut tmp_ptr = buffer;
         for _ in 0..length {
             unsafe {
-                ptr::write(tmp_ptr, f());
+                ptr::write(tmp_ptr, factory());
                 tmp_ptr = tmp_ptr.add(1);
             }
         }
         let pieces = ArrayPieces { ptr: buffer, length: length };
-        Self { pieces }
+        Ok(Self { pieces })
     }
 
     #[inline(always)]

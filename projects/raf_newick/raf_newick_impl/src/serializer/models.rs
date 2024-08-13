@@ -37,7 +37,7 @@ impl<'a, TWrite: Write> Serializer<'a, TWrite> {
     }
 
     pub fn serialize(mut self) -> Result<SerializeOk, SerializeError> {
-        let root = self.graph.root();
+        let root = self.graph.root_id();
         self.serialize_node(root)?;
         self.write_char(SEMICOLON)?;
         Ok(SerializeOk { written_bytes: self.written_bytes })

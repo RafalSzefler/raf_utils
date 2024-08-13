@@ -1,9 +1,7 @@
 use crate::atomic_array::NewStrongArrayError;
 
-#[allow(unused_imports)]
-use super::ImmutableString;
-
-/// Represents errors during [`ImmutableString`] construction.
+/// Represents errors during [`ImmutableString`][super::ImmutableString]
+/// construction.
 #[derive(Debug)]
 pub enum NewImmutableStringError {
     MaxLengthExceeded,

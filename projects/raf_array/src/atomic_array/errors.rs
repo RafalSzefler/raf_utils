@@ -1,7 +1,4 @@
-#[allow(unused_imports)]
-use super::{StrongArray, WeakArray};
-
-/// Represents errors during [`StrongArray`] construction.
+/// Represents errors during [`StrongArray`][super::StrongArray] construction.
 #[derive(Debug)]
 pub enum NewStrongArrayError {
     MaxLengthExceeded,
@@ -9,7 +6,8 @@ pub enum NewStrongArrayError {
     MisalignedResultError,
 }
 
-/// Represents errors during [`WeakArray`] upgrade to [`StrongArray`].
+/// Represents errors during [`WeakArray`][super::WeakArray] upgrade to
+/// [`StrongArray`][super::StrongArray].
 #[derive(Debug)]
 pub enum WeakUpgradeError {
     NoStrongReference,

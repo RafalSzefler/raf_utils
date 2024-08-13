@@ -65,5 +65,5 @@ impl NewickGraph {
     }
 
     #[inline(always)]
-    pub fn root(&self) -> NewickNodeId { self.root }
+    pub fn root_id(&self) -> NewickNodeId { self.root }
 }

@@ -3,8 +3,20 @@ use std::sync::{Arc, Mutex};
 use raf_array::array::Array;
 
 #[test]
+fn doc_test() {
+    let index = &mut 1;
+    let factory = || {
+        let value = *index;
+        *index = value * 2;
+        value
+    };
+    let arr = Array::from_factory(5, factory).unwrap();
+    assert_eq!(arr.as_slice(), &[1, 2, 4, 8, 16]);
+}
+
+#[test]
 fn test_u8_array_1() {
-    let array = Array::<u8>::new(0);
+    let array = Array::<u8>::new_default(0).unwrap();
     let slice = array.as_slice();
     assert_eq!(slice.len(), 0);
     assert!(slice.get(0).is_none());
@@ -12,7 +24,7 @@ fn test_u8_array_1() {
 
 #[test]
 fn test_u8_array_2() {
-    let mut array = Array::<u8>::new(3);
+    let mut array = Array::<u8>::new_default(3).unwrap();
     let slice = array.as_slice_mut();
     slice[0] = 1;
     slice[1] = 15;
@@ -32,7 +44,7 @@ impl Default for Baz {
 
 #[test]
 fn test_baz_array() {
-    let array = Array::<Baz>::new(3);
+    let array = Array::<Baz>::new_default(3).unwrap();
     let slice = array.as_slice();
     for item in slice {
         assert_eq!(item.value, 7);
@@ -54,7 +66,7 @@ fn test_array_clone() {
         data
     };
 
-    let array = Array::<CloneTest>::new_with_fill(4, factory);
+    let array = Array::<CloneTest>::from_factory(4, factory).unwrap();
     
     let clone = array.clone();
     let clone2 = clone.clone();
@@ -88,7 +100,7 @@ fn test_drop() {
         let factory = || {
             Droppable { counter: clone.clone() }
         };
-        let _array = Array::<Droppable>::new_with_fill(ARRAY_LEN, factory);
+        let _array = Array::<Droppable>::from_factory(ARRAY_LEN, factory);
     }
 
     {
