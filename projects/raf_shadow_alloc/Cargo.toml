@@ -1,0 +1,9 @@
+[package]
+name = "raf_shadow_alloc"
+version = "0.1.1"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+region = { workspace = true }

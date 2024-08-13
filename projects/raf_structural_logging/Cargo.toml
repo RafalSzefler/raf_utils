@@ -1,0 +1,15 @@
+[package]
+name = "raf_structural_logging"
+version = "0.1.1"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+raf_array = { path = "../raf_array", version = "0.1.1" }
+raf_fnv1a_hasher = { path = "../raf_fnv1a_hasher", version = "0.1.1" }
+raf_readonly = { path = "../raf_readonly", version = "0.1.1" }
+
+[dev-dependencies]
+
+[features]

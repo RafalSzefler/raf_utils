@@ -1,0 +1,16 @@
+[package]
+name = "raf_newick"
+version = "0.1.1"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+raf_newick_macros = { path = "raf_newick_macros" }
+raf_newick_impl = { path = "raf_newick_impl" }
+
+[dev-dependencies]
+rstest = { workspace = true }
+raf_newick_tests = { path = "raf_newick_tests" }
+
+[features]
