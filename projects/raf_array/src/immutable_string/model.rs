@@ -17,6 +17,7 @@ use super::{
 /// Represents an immutable string, in its essence similar to `Arc<[u8]>`,
 /// except more compact, slightly more efficient and with better API.
 #[derive(Clone)]
+#[repr(transparent)]
 pub struct ImmutableString {
     array: ManuallyDrop<StrongArray<u8>>,
 }

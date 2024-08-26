@@ -9,6 +9,7 @@ use super::{internal_array::InternalArray, ArrayId, WeakArray};
 /// 
 /// Use this class if you want to add logic after all strong references are
 /// gone but before the actual memory is deallocated.
+#[repr(transparent)]
 pub struct FinalStrongArray<T>
     where T: Sized
 {

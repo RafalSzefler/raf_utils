@@ -7,6 +7,7 @@ use super::{
 };
 
 /// A builder for [`StrongArray`] instances.
+#[repr(C)]
 pub struct StrongArrayBuilder<T>
     where T: Sized
 {

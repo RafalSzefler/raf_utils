@@ -4,13 +4,15 @@ use crate::macros::{position_bit_size_helper, unsafe_size_it};
 
 /// Represents error during [`TaggedPointer`] construction.
 #[derive(Debug)]
+#[repr(u8)]
 pub enum TaggedPointerNewError {
-    PointerMisaligned,
+    PointerMisaligned = 0,
 }
 
 /// Represents a pointer with `BIT_COUNT` number of bits available to store
 /// arbitrary data. The data is stored internally in the pointer itself,
 /// depending on its alignement.
+#[repr(transparent)]
 pub struct TaggedPointer<T: ?Sized, const BIT_COUNT: usize> {
     raw_ptr: *mut T,
 }

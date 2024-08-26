@@ -19,6 +19,7 @@ use super::{
 /// [`WeakArray`]. In other words the number of weak references can never go
 /// to 0 before the number of strong references does.
 #[derive(Debug)]
+#[repr(transparent)]
 pub struct WeakArray<T>
     where T: Sized
 {

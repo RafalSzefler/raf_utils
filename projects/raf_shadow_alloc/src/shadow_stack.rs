@@ -7,12 +7,14 @@ use region::{Allocation, Protection};
 
 use crate::shadow_stack_size::get_shadow_stack_size;
 
+#[repr(C)]
 struct InnerShadowStack {
     pub current_end: *mut u8,
     pub real_end: *mut u8,
     pub _region: Allocation,
 }
 
+#[repr(transparent)]
 struct ShadowStack {
     inner: UnsafeCell<InnerShadowStack>,    
 }
