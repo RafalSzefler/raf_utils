@@ -1,11 +1,13 @@
 /// Struct that represents three different logical values: TRUE, FALSE and
 /// UNKNOWN.
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
+#[repr(transparent)]
 pub struct TriBool {
     value: u8,
 }
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+#[repr(transparent)]
 pub struct NotBoolError;
 
 impl TriBool {
@@ -110,7 +112,7 @@ impl TriBool {
 }
 
 impl core::fmt::Debug for TriBool {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.debug_struct("TriBool")
             .field("value", &self.as_str())
             .finish()
@@ -118,7 +120,7 @@ impl core::fmt::Debug for TriBool {
 }
 
 impl core::fmt::Display for TriBool {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         f.write_str(self.as_str())
     }
 }

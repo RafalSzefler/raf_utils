@@ -7,6 +7,7 @@ use super::{internal_array::InternalArray, ArrayId};
 /// 
 /// Use this class if you want to add logic after all strong and weak
 /// references are gone, just before data deallocation.
+#[repr(transparent)]
 pub struct FinalWeakArray<T>
     where T: Sized
 {

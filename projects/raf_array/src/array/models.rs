@@ -28,6 +28,7 @@ impl<T> LayoutHelpers<T> {
 /// Represents internals of [`Array`]. This is a raw struct, doesn't contain
 /// any logic inside, except it will get properly deallocated on drop.
 #[derive(Debug)]
+#[repr(C)]
 pub struct ArrayPieces<T>
     where T: Sized
 {
@@ -68,14 +69,16 @@ impl<T> Drop for ArrayPieces<T>
 
 /// Represents potential errors on array construction.
 #[derive(Debug)]
+#[repr(u8)]
 pub enum ArrayNewError {
-    AllocationError,
-    MaxLengthExceeded,
+    AllocationError = 0,
+    MaxLengthExceeded = 1,
 }
 
 /// Represents a dynamically created array with length known at runtime.
 /// Generally a thin wrapper around slices. Similar to `Vec` but it cannot
 /// change size.
+#[repr(transparent)]
 pub struct Array<T>
     where T: Sized
 {

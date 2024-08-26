@@ -11,6 +11,7 @@ use super::{
 /// Similar to [`Array`][crate::array::Array], except backed by atomic
 /// reference counters. This type is immutable: it doesn't allow mutating
 /// its internal slice. For internal mutability store Cells inside.
+#[repr(transparent)]
 pub struct StrongArray<T>
     where T: Sized
 {

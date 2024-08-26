@@ -1,15 +1,17 @@
-use std::ops::{BitAnd, BitOr, BitXor};
+use core::ops::{BitAnd, BitOr, BitXor};
 
 /// Represents two bit value: 0 or 1.
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
+#[repr(transparent)]
 pub struct Bit {
     value: u8
 }
 
 /// Represents error in bit construction.
 #[derive(Debug)]
+#[repr(u8)]
 pub enum BitNewError {
-    ValueOutOfRange,
+    ValueOutOfRange = 0,
 }
 
 impl Bit {

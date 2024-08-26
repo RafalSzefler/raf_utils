@@ -28,6 +28,7 @@ fn as_usize<T>(raw: T) -> usize {
 
 
 #[derive(Debug)]
+#[repr(C)]
 pub(super) struct InternalArray<T>
     where T: Sized
 {

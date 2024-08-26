@@ -8,6 +8,9 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
+
+#![no_std]
+
 mod macros;
 mod bit;
 mod tagged_pointer;

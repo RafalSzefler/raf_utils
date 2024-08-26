@@ -3,6 +3,7 @@ use core::hash::Hasher;
 use crate::{calculations::update_fnv1a_32, init};
 
 /// An implementation of 32-bit `FNV1a` algorithm.
+#[repr(transparent)]
 pub struct FNV1a32Hasher {
     current_value: u32,
 }

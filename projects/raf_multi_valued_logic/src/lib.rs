@@ -8,4 +8,7 @@
     clippy::must_use_candidate,
     clippy::module_name_repetitions,
 )]
+
+#![no_std]
+
 pub mod tribool;

@@ -23,7 +23,7 @@ struct TriBoolVisitor;
 impl<'de> Visitor<'de> for TriBoolVisitor {
     type Value = TriBool;
     
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+    fn expecting(&self, formatter: &mut core::fmt::Formatter) -> core::fmt::Result {
         formatter.write_str("TriBool")
     }
 
