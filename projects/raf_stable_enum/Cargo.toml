@@ -1,0 +1,19 @@
+[package]
+name = "raf_stable_enum"
+version = "0.1.1"
+edition.workspace = true
+authors.workspace = true
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+proc-macro2 = { workspace = true }
+quote = { workspace = true }
+syn = { workspace = true }
+
+raf_readonly = { path = "../raf_readonly", version = "0.1.1" }
+
+[dev-dependencies]
+rstest = { workspace = true }
