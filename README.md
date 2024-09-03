@@ -15,9 +15,10 @@ directed acyclci graphs.
 * [`raf_readonly`](https://rafalszefler.github.io/raf_utils/raf_readonly) which is a proc-macro for generating readonly structs.
 * [`raf_shadow_alloc`](https://rafalszefler.github.io/raf_utils/raf_shadow_alloc) which allows a fast buffer allocation on a separate,
 thread local stack.
+* [`raf_stable_enum`](https://rafalszefler.github.io/raf_utils/raf_stable_enum) which provides proc-macro-attribute for converting Rust enums
+into stable ABI enums.
 * [`raf_structural_logging`](https://rafalszefler.github.io/raf_utils/raf_structural_logging) which provides abstractions and basic implementation
 of rich structural logging.
 * [`raf_structural_logging_console`](https://rafalszefler.github.io/raf_utils/raf_structural_logging_console) which provides console handler for `raf_structural_logging`.
 * [`raf_tagged_pointer`](https://rafalszefler.github.io/raf_utils/raf_tagged_pointer) which wraps raw pointers into a struct that allows
 packing of additional bits, depending on alignment.
-

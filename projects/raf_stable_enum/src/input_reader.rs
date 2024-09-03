@@ -64,7 +64,7 @@ pub(crate) fn read_input(tokens: TokenStream) -> Result<ParsedEnum, Error>
         }
 
         let name = variant.ident.to_string();
-        if name.chars().any(|ch| ch.is_lowercase()) {
+        if name.chars().any(char::is_lowercase) {
             errors.push(Error::new(variant.ident.span(), "[stable_enum] enums variant names have to be upper case."));
         }
 
@@ -73,13 +73,11 @@ pub(crate) fn read_input(tokens: TokenStream) -> Result<ParsedEnum, Error>
                 syn::Expr::Lit(val) => {
                     match &val.lit {
                         syn::Lit::Int(val) => {
-                            let value = match val.base10_parse::<u32>() {
-                                Ok(value) => value,
-                                Err(_) => {
-                                    errors.push(Error::new(discriminant.1.span(), "[stable_enum] enums have to have u32 const numeric values."));
-                                    continue;
-                                },
+                            let Ok(value) = val.base10_parse::<u32>() else {
+                                errors.push(Error::new(discriminant.1.span(), "[stable_enum] enums have to have u32 const numeric values."));
+                                continue;
                             };
+                                
 
                             if !seen_values.insert(value) {
                                 errors.push(Error::new(discriminant.1.span(), "[stable_enum] value already present in the enum."));
@@ -95,7 +93,7 @@ pub(crate) fn read_input(tokens: TokenStream) -> Result<ParsedEnum, Error>
                             variants.push(ParsedEnumVariant::new(
                                 variant.ident.clone(),
                                 associated_type,
-                                value))
+                                value));
                         },
                         _ => {
                             errors.push(Error::new(discriminant.1.span(), "[stable_enum] enums have to have const numeric values."));
