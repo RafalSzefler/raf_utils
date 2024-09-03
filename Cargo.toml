@@ -2,6 +2,7 @@
 members = [
     "projects/raf_readonly",
     "projects/raf_array",
+    "projects/raf_stable_enum",
     "projects/raf_shadow_alloc",
     "projects/raf_tagged_pointer",
     "projects/raf_fnv1a_hasher",
