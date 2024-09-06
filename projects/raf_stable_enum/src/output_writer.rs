@@ -182,6 +182,8 @@ pub(crate) fn generate_output(input: &ParsedEnum) -> TokenStream
     quote! {
         #[repr(u32)]
         #[derive(PartialEq, Eq, Hash, Clone, Copy, Debug)]
+        #[allow(non_camel_case_types)]
+        #[allow(non_snake_case)]
         #vis enum #key_name {
             #values_stream
         }
